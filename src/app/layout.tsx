@@ -1,6 +1,16 @@
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { QueryProvider } from '@/providers/QueryProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import './globals.css';
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-primary',
+  weight: ['400', '500', '600', '700'],
+});
 
 export const metadata: Metadata = {
   title: 'VoyageAI - AI-powered Travel Planning',
@@ -20,9 +30,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className={plusJakartaSans.variable}>
         <QueryProvider>
-          {children}
+          <AuthProvider>
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

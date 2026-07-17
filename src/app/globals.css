@@ -1,17 +1,220 @@
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: #0ea5e9;
+    --color-secondary: #0f172a;
+    --color-accent: #14b8a6;
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #64748b;
+    --color-text-tertiary: #94a3b8;
+    --color-border: #e2e8f0;
+  }
+
   * {
-    @apply m-0 p-0;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
   html {
-    @apply scroll-smooth;
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-slate-50 text-slate-900;
+    background-color: #f8fafc;
+    color: #0f172a;
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   }
+
+  button {
+    font-family: inherit;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  .text-h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  @media (min-width: 768px) {
+    .text-h1 {
+      font-size: 3rem;
+    }
+  }
+
+  .text-h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  @media (min-width: 768px) {
+    .text-h2 {
+      font-size: 2.25rem;
+    }
+  }
+
+  .text-h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  @media (min-width: 768px) {
+    .text-h3 {
+      font-size: 1.875rem;
+    }
+  }
+
+  .text-h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  @media (min-width: 768px) {
+    .text-h4 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .text-h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  @media (min-width: 768px) {
+    .text-h5 {
+      font-size: 1.25rem;
+    }
+  }
+
+  .text-body-lg {
+    font-size: 1rem;
+    line-height: 1.625;
+  }
+
+  .text-body {
+    font-size: 0.875rem;
+    line-height: 1.625;
+  }
+
+  @media (min-width: 768px) {
+    .text-body {
+      font-size: 1rem;
+    }
+  }
+
+  .text-body-sm {
+    font-size: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .text-body-sm {
+      font-size: 0.875rem;
+    }
+  }
+
+  .container-custom {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 80rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-custom {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-custom {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .section-py {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  @media (min-width: 768px) {
+    .section-py {
+      padding-top: 6rem;
+      padding-bottom: 6rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-py {
+      padding-top: 8rem;
+      padding-bottom: 8rem;
+    }
+  }
+
+  .section-py-sm {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .section-py-sm {
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+    }
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .transition-smooth {
+    transition: all 300ms ease-out;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
