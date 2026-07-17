@@ -1,1 +1,1 @@
-// Custom hooks will be exported from here
+export { useDestinations, useFeaturedDestinations } from './useDestinations';
