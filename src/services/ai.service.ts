@@ -51,9 +51,40 @@ export interface TripPlanResponse {
   packing: string[];
 }
 
+export interface RecommendationRequest {
+  budget: number;
+  preferredSeason: string;
+  travelStyle: string;
+  groupType: string;
+  interests: string[];
+}
+
+export interface RecommendationDestination {
+  name: string;
+  country: string;
+  reason: string;
+  estimatedBudget: string;
+  bestTimeToVisit: string;
+  suggestedDuration: string;
+  mustVisitAttractions: string[];
+  travelTips: string[];
+}
+
+export interface RecommendationResponse {
+  type: string;
+  destinations: RecommendationDestination[];
+  alternatives: RecommendationDestination[];
+  generalTips: string[];
+}
+
 export const aiService = {
   async generateTripPlan(payload: TripPlanRequest): Promise<TripPlanResponse> {
     const response = await apiClient.post('/ai/trip-plan', payload);
+    return response.data.data;
+  },
+
+  async generateRecommendation(payload: RecommendationRequest): Promise<RecommendationResponse> {
+    const response = await apiClient.post('/ai/recommend', payload);
     return response.data.data;
   },
 };
