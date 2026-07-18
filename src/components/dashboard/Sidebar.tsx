@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  Home,
   LayoutDashboard,
   Wand2,
   Compass,
@@ -20,6 +21,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
+
+const topItems = [
+  { icon: Home, label: 'Home', href: '/' },
+  { icon: Compass, label: 'Explore', href: '/explore' },
+];
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -76,12 +82,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-200">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg" />
-            <span className="font-bold text-slate-900">VoyageAI</span>
-          </div>
-        )}
+        <Link href="/" onClick={onClose}>
+          {!isCollapsed && (
+            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+              <div className="w-8 h-8 bg-gradient-primary rounded-lg" />
+              <span className="font-bold text-slate-900">VoyageAI</span>
+            </div>
+          )}
+          {isCollapsed && <div className="w-8 h-8 bg-gradient-primary rounded-lg cursor-pointer hover:opacity-80 transition-opacity" />}
+        </Link>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="hidden md:p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100"
@@ -100,6 +109,32 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Navigation Items */}
       <nav className="flex-1 overflow-y-auto py-4 px-2">
+        {/* Top Navigation Items (Home, Explore) */}
+        <div className="mb-4 pb-4 border-b border-slate-200">
+          {topItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors group ${
+                  active
+                    ? 'bg-sky-100 text-sky-600 font-medium'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Icon size={20} />
+                {!isCollapsed && <span>{item.label}</span>}
+                {active && !isCollapsed && <ChevronRight size={16} className="ml-auto" />}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Main Dashboard Items */}
         {sidebarItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
