@@ -87,6 +87,29 @@ export const aiService = {
     const response = await apiClient.post('/ai/recommend', payload);
     return response.data.data;
   },
+
+  async sendChatMessage(historyId: string | null, message: string) {
+    const response = await apiClient.post('/ai/chat', {
+      historyId,
+      message,
+    });
+    return response.data.data;
+  },
+
+  async getChatHistory() {
+    const response = await apiClient.get('/ai/history');
+    return response.data.data;
+  },
+
+  async deleteChatHistory(historyId: string) {
+    const response = await apiClient.delete(`/ai/history/${historyId}`);
+    return response.data;
+  },
+
+  async clearAllChatHistory() {
+    const response = await apiClient.delete('/ai/history');
+    return response.data;
+  },
 };
 
 export default aiService;

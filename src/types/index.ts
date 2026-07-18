@@ -104,3 +104,36 @@ export interface AuthResponse {
     user: User;
   };
 }
+
+export interface ChatMessage {
+  _id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
+
+export interface ChatHistory {
+  _id: string;
+  userId: string;
+  messages: ChatMessage[];
+  title?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatHistoriesResponse {
+  success: boolean;
+  message: string;
+  data: ChatHistory[];
+}
+
+export interface ChatResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    role: 'assistant';
+    content: string;
+    createdAt: string;
+  };
+}
