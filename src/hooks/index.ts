@@ -7,3 +7,5 @@ export { useLogin } from './useLogin';
 export { useRegister } from './useRegister';
 export { useGoogleLogin } from './useGoogleLogin';
 export { useGenerateTripPlan } from './useGenerateTripPlan';
+export { useAIChatHistory, useDeleteChatHistory, useClearAllChatHistory, useSendChatMessage } from './useAIChatHistory';
+
