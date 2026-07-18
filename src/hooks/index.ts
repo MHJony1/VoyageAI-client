@@ -6,3 +6,4 @@ export { useSaveTrip } from './useSaveTrip';
 export { useLogin } from './useLogin';
 export { useRegister } from './useRegister';
 export { useGoogleLogin } from './useGoogleLogin';
+export { useGenerateTripPlan } from './useGenerateTripPlan';
