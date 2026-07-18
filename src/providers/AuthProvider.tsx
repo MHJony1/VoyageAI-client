@@ -32,8 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(response.data);
         localStorage.setItem('user', JSON.stringify(response.data));
       }
-    } catch (error) {
-      console.error('Failed to restore session:', error);
+    } catch {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);

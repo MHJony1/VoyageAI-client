@@ -3,8 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import LayoutWrapper from '@/components/LayoutWrapper';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -34,13 +33,7 @@ export default function RootLayout({
       <body className={plusJakartaSans.variable}>
         <QueryProvider>
           <AuthProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <LayoutWrapper>{children}</LayoutWrapper>
             <Toaster position="top-right" richColors />
           </AuthProvider>
         </QueryProvider>
