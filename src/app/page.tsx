@@ -1,4 +1,5 @@
 import HeroSection from '@/components/home/HeroSection';
+import TrustedBy from '@/components/home/TrustedBy';
 import FeaturedDestinations from '@/components/home/FeaturedDestinations';
 import AIFeatures from '@/components/home/AIFeatures';
 import WhyChoose from '@/components/home/WhyChoose';
@@ -12,6 +13,7 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <TrustedBy />
       <FeaturedDestinations />
       <AIFeatures />
       <WhyChoose />

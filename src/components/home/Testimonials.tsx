@@ -58,11 +58,11 @@ export default function Testimonials() {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
           <h2 className="text-h2 text-slate-900 mb-4">Loved by Travelers</h2>
           <p className="text-body-lg text-slate-600 max-w-2xl mx-auto">
-            See what thousands of satisfied travelers say about VoyageAI
+            Thousands of happy travelers share how VoyageAI transformed their journeys
           </p>
         </motion.div>
 
@@ -77,8 +77,8 @@ export default function Testimonials() {
             <motion.div
               key={index}
               variants={itemVariants}
-              whileHover={{ y: -8 }}
-              className="bg-white rounded-lg shadow-md border border-slate-200 p-8 hover:shadow-lg transition-all duration-300"
+              whileHover={{ y: -12 }}
+              className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-xl transition-all duration-300 flex flex-col"
             >
               <div className="flex gap-1 mb-4">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
@@ -90,8 +90,10 @@ export default function Testimonials() {
                 ))}
               </div>
 
-              <p className="text-slate-700 mb-6 leading-relaxed">
-                "{testimonial.content}"
+              <p className="text-slate-700 mb-8 leading-relaxed flex-1">
+                <span className="text-2xl text-sky-600 font-light">"</span>
+                {testimonial.content}
+                <span className="text-2xl text-sky-600 font-light">"</span>
               </p>
 
               <div className="flex items-center gap-4 pt-6 border-t border-slate-200">

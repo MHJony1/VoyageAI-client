@@ -8,6 +8,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
+  fullWidth?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -25,13 +26,14 @@ const sizeStyles: Record<ButtonSize, string> = {
 };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => (
+  ({ className, variant = 'primary', size = 'md', isLoading, fullWidth = false, children, disabled, ...props }, ref) => (
     <button
       ref={ref}
       className={cn(
         'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors focus-visible disabled:opacity-50 disabled:cursor-not-allowed',
         variantStyles[variant],
         sizeStyles[size],
+        fullWidth && 'w-full',
         className
       )}
       disabled={isLoading || disabled}

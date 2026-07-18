@@ -43,11 +43,11 @@ export default function PopularCategories() {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <h2 className="text-h2 text-slate-900 mb-4">Popular Destinations by Category</h2>
+          <h2 className="text-h2 text-slate-900 mb-4">Explore by Interest</h2>
           <p className="text-body-lg text-slate-600 max-w-2xl mx-auto">
-            Explore destinations based on your travel interests
+            Discover destinations tailored to your travel style and interests
           </p>
         </motion.div>
 
@@ -66,18 +66,19 @@ export default function PopularCategories() {
               className="group"
             >
               <Link href={`/explore?category=${category.name.toLowerCase()}`}>
-                <div className={`bg-gradient-to-br ${category.color} rounded-lg p-6 text-white shadow-md hover:shadow-lg transition-all duration-300 h-full min-h-48 flex flex-col justify-between`}>
-                  <div>
-                    <div className="text-5xl mb-3">{category.icon}</div>
-                    <h3 className="text-h4 font-semibold mb-2">{category.name}</h3>
+                <div className={`bg-gradient-to-br ${category.color} rounded-2xl p-8 text-white shadow-lg hover:shadow-2xl transition-all duration-300 h-full min-h-56 flex flex-col justify-between relative overflow-hidden group`}>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-white transition-opacity" />
+                  <div className="relative z-10">
+                    <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">{category.icon}</div>
+                    <h3 className="text-h4 font-bold mb-2">{category.name}</h3>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium opacity-90">
-                      {category.count} places
+                  <div className="flex items-center justify-between relative z-10">
+                    <span className="text-sm font-semibold opacity-95">
+                      {category.count} destinations
                     </span>
                     <ArrowRight
-                      size={18}
-                      className="group-hover:translate-x-1 transition-transform"
+                      size={20}
+                      className="group-hover:translate-x-2 transition-transform font-bold"
                     />
                   </div>
                 </div>

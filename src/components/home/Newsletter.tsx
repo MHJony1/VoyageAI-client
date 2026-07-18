@@ -39,18 +39,21 @@ export default function Newsletter() {
           transition={{ duration: 0.6 }}
           className="max-w-2xl mx-auto"
         >
-          <div className="bg-white rounded-lg shadow-md border border-slate-200 p-8 md:p-12">
-            <div className="flex items-center justify-center w-14 h-14 bg-sky-100 rounded-lg mx-auto mb-6">
-              <Mail className="text-sky-600" size={24} />
+          <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg border border-slate-200 p-8 md:p-12 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-sky-100 rounded-full blur-3xl opacity-40" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-xl mx-auto mb-6 shadow-lg">
+                <Mail size={28} />
+              </div>
+
+              <h2 className="text-h2 text-center text-slate-900 mb-3">
+                Get Travel Inspiration Weekly
+              </h2>
+
+              <p className="text-center text-slate-600 mb-8 max-w-lg mx-auto">
+                Subscribe to receive exclusive travel tips, destination guides, and AI-generated itineraries tailored to your interests.
+              </p>
             </div>
-
-            <h2 className="text-h3 text-center text-slate-900 mb-3">
-              Travel Inspiration Delivered
-            </h2>
-
-            <p className="text-center text-slate-600 mb-8 max-w-lg mx-auto">
-              Subscribe to our newsletter for travel tips, destination guides, and exclusive AI-generated itineraries delivered to your inbox.
-            </p>
 
             <form onSubmit={handleSubscribe} className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-3">

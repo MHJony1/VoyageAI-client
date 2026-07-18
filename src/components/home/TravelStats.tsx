@@ -57,11 +57,11 @@ export default function TravelStats() {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <h2 className="text-h2 text-slate-900 mb-4">Travel by the Numbers</h2>
+          <h2 className="text-h2 text-slate-900 mb-4">By the Numbers</h2>
           <p className="text-body-lg text-slate-600 max-w-2xl mx-auto">
-            Join millions of travelers discovering the world with VoyageAI
+            Join millions of travelers discovering the world with VoyageAI's intelligent planning
           </p>
         </motion.div>
 
@@ -76,11 +76,12 @@ export default function TravelStats() {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="bg-white rounded-lg shadow-md p-6 text-center border border-slate-200 hover:shadow-lg transition-shadow"
+              whileHover={{ y: -8 }}
+              className="bg-white rounded-2xl shadow-sm p-8 text-center border border-slate-200 hover:shadow-xl transition-all group"
             >
-              <div className="text-4xl mb-2">{stat.icon}</div>
-              <p className="text-h3 font-bold text-sky-600 mb-2">{stat.value}</p>
-              <p className="text-sm text-slate-600">{stat.label}</p>
+              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{stat.icon}</div>
+              <p className="text-h2 font-bold bg-gradient-to-r from-sky-600 to-teal-600 bg-clip-text text-transparent mb-2">{stat.value}</p>
+              <p className="text-sm font-medium text-slate-600">{stat.label}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -91,9 +92,9 @@ export default function TravelStats() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="grid grid-cols-1 lg:grid-cols-2 gap-8"
         >
-          <div className="bg-white rounded-lg shadow-md p-8 border border-slate-200">
+          <div className="bg-white rounded-2xl shadow-sm p-8 border border-slate-200 hover:shadow-lg transition-shadow">
             <h3 className="text-h4 font-semibold text-slate-900 mb-6">
-              Popular Destination Categories
+              Popular Categories
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -128,7 +129,7 @@ export default function TravelStats() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-8 border border-slate-200">
+          <div className="bg-white rounded-2xl shadow-sm p-8 border border-slate-200 hover:shadow-lg transition-shadow">
             <h3 className="text-h4 font-semibold text-slate-900 mb-6">
               Growth Trend
             </h3>

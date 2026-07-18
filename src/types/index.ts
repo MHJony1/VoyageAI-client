@@ -84,3 +84,23 @@ export interface Trip {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  photo?: string;
+  provider: string;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: {
+    token: string;
+    user: User;
+  };
+}

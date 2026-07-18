@@ -66,11 +66,11 @@ export default function WhyChoose() {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
           <h2 className="text-h2 text-slate-900 mb-4">Why Choose VoyageAI?</h2>
           <p className="text-body-lg text-slate-600 max-w-2xl mx-auto">
-            Everything you need for the perfect travel experience
+            Complete travel solutions designed to make your journey unforgettable
           </p>
         </motion.div>
 
@@ -83,22 +83,24 @@ export default function WhyChoose() {
         >
           {reasons.map((reason, index) => {
             const Icon = reason.icon;
+            const colors = ['from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-orange-500 to-red-500', 'from-teal-500 to-emerald-500', 'from-sky-500 to-blue-500', 'from-amber-500 to-orange-500'];
             return (
               <motion.div
                 key={index}
                 variants={itemVariants}
-                className="flex gap-4"
+                whileHover={{ y: -4 }}
+                className="flex gap-4 p-6 rounded-2xl bg-white border border-slate-200 hover:shadow-lg transition-all group"
               >
                 <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-sky-100">
-                    <Icon className="h-6 w-6 text-sky-600" />
+                  <div className={`flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br ${colors[index]} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                    <Icon className="h-7 w-7" />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-h5 font-semibold text-slate-900 mb-2">
+                  <h3 className="text-h5 font-semibold text-slate-900 mb-2 group-hover:text-sky-600 transition-colors">
                     {reason.title}
                   </h3>
-                  <p className="text-slate-600">
+                  <p className="text-slate-600 text-sm leading-relaxed">
                     {reason.description}
                   </p>
                 </div>
