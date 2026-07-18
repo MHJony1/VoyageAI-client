@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Toaster } from 'sonner';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import Navbar from '@/components/Navbar';
@@ -40,6 +41,7 @@ export default function RootLayout({
               </main>
               <Footer />
             </div>
+            <Toaster position="top-right" richColors />
           </AuthProvider>
         </QueryProvider>
       </body>

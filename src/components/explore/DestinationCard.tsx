@@ -24,7 +24,7 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
       transition={{ duration: 0.3 }}
       className="group h-full"
     >
-      <Link href={`/destinations/${destination._id}`}>
+      <Link href={`/explore/${destination._id}`}>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col backdrop-blur-sm">
           {/* Image */}
           <div className="relative h-56 overflow-hidden bg-slate-200">

@@ -11,6 +11,10 @@ import { GridSkeleton } from '@/components/Loading';
 import ErrorState from '@/components/ErrorState';
 import { useFeaturedDestinations } from '@/hooks/useDestinations';
 
+function getPlaceholderImage(destinationName: string): string {
+  return `https://placehold.co/500x400?text=${encodeURIComponent(destinationName)}`;
+}
+
 export default function FeaturedDestinations() {
   const { data: destinations = [], isLoading, error, refetch } = useFeaturedDestinations();
 
@@ -79,16 +83,27 @@ export default function FeaturedDestinations() {
                 whileHover={{ y: -8 }}
                 className="group"
               >
-                <Link href={`/destinations/${destination._id}`}>
-                  <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                    <div className="relative h-48 overflow-hidden bg-slate-200">
-                      <Image
-                        src={destination.image}
-                        alt={destination.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      />
+                <Link href={`/explore/${destination._id}`}>
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col backdrop-blur-sm">
+                    <div className="relative h-56 overflow-hidden bg-slate-200">
+                      {destination.image ? (
+                        <Image
+                          src={destination.image}
+                          alt={destination.name}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <Image
+                          src={getPlaceholderImage(destination.name)}
+                          alt={`${destination.name} - placeholder`}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-500 bg-slate-300"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
 
                     <div className="p-4 flex-1 flex flex-col justify-between">

@@ -39,3 +39,48 @@ export interface DestinationQueryParams {
   category?: string;
   sort?: 'rating' | 'budget';
 }
+
+export interface Review {
+  _id: string;
+  userId: string;
+  destinationId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewsResponse {
+  success: boolean;
+  message: string;
+  data: Review[];
+  pagination: PaginationMeta;
+}
+
+export interface CreateTripPayload {
+  destinationId: string;
+  destination: string;
+  days: number;
+  budget: number;
+  travelStyle: string;
+  interests?: string[];
+  itinerary: string;
+  estimatedCost: number;
+  status: string;
+}
+
+export interface Trip {
+  _id: string;
+  userId: string;
+  destinationId: string;
+  destination: string;
+  days: number;
+  budget: number;
+  travelStyle: string;
+  interests?: string[];
+  itinerary: string;
+  estimatedCost: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
