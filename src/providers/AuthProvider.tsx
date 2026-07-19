@@ -9,6 +9,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
+  googleLogin: (token: string) => Promise<void>;
+  demoLogin: () => Promise<void>;
   logout: () => void;
   restoreSession: () => Promise<void>;
 }
@@ -18,6 +20,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const persistSession = useCallback((token: string, userData: User) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+  }, []);
 
   const restoreSession = useCallback(async () => {
     try {
@@ -48,22 +56,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await authService.login(payload);
     if (response.data) {
-      const { token, user: userData } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      persistSession(response.data.token, response.data.user);
     }
-  }, []);
+  }, [persistSession]);
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await authService.register(payload);
     if (response.data) {
-      const { token, user: userData } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      persistSession(response.data.token, response.data.user);
     }
-  }, []);
+  }, [persistSession]);
+
+  const googleLogin = useCallback(async (token: string) => {
+    const response = await authService.googleLogin({ token });
+    if (response.data) {
+      persistSession(response.data.token, response.data.user);
+    }
+  }, [persistSession]);
+
+  const demoLogin = useCallback(async () => {
+    const response = await authService.demoLogin();
+    if (response.data) {
+      persistSession(response.data.token, response.data.user);
+    }
+  }, [persistSession]);
 
   const logout = useCallback(() => {
     try {
@@ -85,6 +101,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         login,
         register,
+        googleLogin,
+        demoLogin,
         logout,
         restoreSession,
       }}

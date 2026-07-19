@@ -57,6 +57,11 @@ export const authService = {
     return response.data;
   },
 
+  demoLogin: async (): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>('/auth/demo');
+    return response.data;
+  },
+
   getCurrentUser: async (): Promise<UserResponse> => {
     const response = await apiClient.get<UserResponse>('/auth/me');
     return response.data;
