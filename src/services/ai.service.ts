@@ -17,7 +17,7 @@ export interface TripPlanResponse {
     day: number;
     title: string;
     activities: string[];
-    meals: string;
+    meals: string | { breakfast?: string; lunch?: string; dinner?: string };
   }>;
   budget: {
     accommodation: number;
@@ -88,9 +88,9 @@ export const aiService = {
     return response.data.data;
   },
 
-  async sendChatMessage(historyId: string | null, message: string) {
+  async sendChatMessage(conversationId: string | null, message: string) {
     const response = await apiClient.post('/ai/chat', {
-      historyId,
+      conversationId: conversationId ?? undefined,
       message,
     });
     return response.data.data;
@@ -98,7 +98,7 @@ export const aiService = {
 
   async getChatHistory() {
     const response = await apiClient.get('/ai/history');
-    return response.data.data;
+    return Array.isArray(response.data?.data) ? response.data.data : [];
   },
 
   async deleteChatHistory(historyId: string) {

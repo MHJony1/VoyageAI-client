@@ -15,8 +15,13 @@ interface Destination {
 
 async function fetchDestinations(limit?: number): Promise<Destination[]> {
   try {
-    const params = limit ? `?limit=${limit}` : '';
-    const response = await apiClient.get(`/destinations${params}`);
+    // Serialize via axios `params` — never interpolate values into the URL string.
+    // Guard against non-numeric input so a bad caller can't produce ?limit=[object Object]
+    const numericLimit =
+      typeof limit === 'number' && Number.isFinite(limit) ? limit : undefined;
+    const response = await apiClient.get('/destinations', {
+      params: numericLimit !== undefined ? { limit: numericLimit } : undefined,
+    });
     if (response.data.success) {
       return response.data.data;
     }

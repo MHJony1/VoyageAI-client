@@ -58,7 +58,7 @@ export interface ReviewsResponse {
 }
 
 export interface CreateTripPayload {
-  destinationId: string;
+  destinationId?: string;
   destination: string;
   days: number;
   budget: number;
@@ -72,7 +72,7 @@ export interface CreateTripPayload {
 export interface Trip {
   _id: string;
   userId: string;
-  destinationId: string;
+  destinationId?: string;
   destination: string;
   days: number;
   budget: number;
@@ -110,6 +110,16 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   createdAt: string;
+}
+
+export interface AIHistoryItem {
+  _id: string;
+  userId: string;
+  type: 'planner' | 'recommendation' | 'chat';
+  prompt: string;
+  response: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface ChatHistory {

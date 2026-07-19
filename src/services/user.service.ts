@@ -30,29 +30,29 @@ export interface UserResponse {
 
 export const userService = {
   updateProfile: async (payload: UpdateProfilePayload): Promise<UserResponse> => {
-    const response = await apiClient.patch<UserResponse>('/user/profile', payload);
+    const response = await apiClient.patch<UserResponse>('/users/profile', payload);
     return response.data;
   },
 
   changePassword: async (payload: ChangePasswordPayload): Promise<UserResponse> => {
-    const response = await apiClient.post<UserResponse>('/user/change-password', payload);
+    const response = await apiClient.post<UserResponse>('/users/change-password', payload);
     return response.data;
   },
 
   getSettings: async (): Promise<{ success: boolean; message: string; data: Partial<UserSettings> }> => {
     const response = await apiClient.get<{ success: boolean; message: string; data: Partial<UserSettings> }>(
-      '/user/settings'
+      '/users/settings'
     );
     return response.data;
   },
 
   updateSettings: async (settings: Partial<UserSettings>): Promise<UserResponse> => {
-    const response = await apiClient.patch<UserResponse>('/user/settings', settings);
+    const response = await apiClient.patch<UserResponse>('/users/settings', settings);
     return response.data;
   },
 
   logoutAllDevices: async (): Promise<UserResponse> => {
-    const response = await apiClient.post<UserResponse>('/user/logout-all-devices');
+    const response = await apiClient.post<UserResponse>('/users/logout-all-devices');
     return response.data;
   },
 };
