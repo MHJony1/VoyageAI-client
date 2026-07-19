@@ -21,6 +21,11 @@ export const destinationService = {
     return response.data.data;
   },
 
+  async getCountries(): Promise<string[]> {
+    const response = await apiClient.get('/destinations/countries');
+    return Array.isArray(response.data?.data) ? response.data.data : [];
+  },
+
   async getRelatedDestinations(category: string, excludeId: string): Promise<Destination[]> {
     const response = await apiClient.get('/destinations', {
       params: {

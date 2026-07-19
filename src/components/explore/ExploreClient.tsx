@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Search, Filter, Compass, Sparkles, X } from 'lucide-react';
+import { Search, Filter, Compass, X } from 'lucide-react';
 import Container from '@/components/Container';
 import { GridSkeleton } from '@/components/Loading';
 import { useExploreDestinations } from '@/hooks/useExploreDestinations';
+import { useCountries } from '@/hooks/useCountries';
 import DestinationGrid from './DestinationGrid';
-import FilterSidebar from './FilterSidebar';
 import FilterDrawer from './FilterDrawer';
+import CountrySelect from './CountrySelect';
 import Pagination from './Pagination';
 
 const CATEGORIES = [
@@ -22,16 +23,6 @@ const CATEGORIES = [
   'Wildlife',
   'Romantic',
   'Wellness',
-];
-const COUNTRIES = [
-  'USA',
-  'UK',
-  'France',
-  'Italy',
-  'Japan',
-  'Thailand',
-  'Australia',
-  'Brazil',
 ];
 
 export default function ExploreClient() {
@@ -63,6 +54,8 @@ export default function ExploreClient() {
       page,
       limit: 9,
     });
+
+  const { data: countries = [], isLoading: isCountriesLoading } = useCountries();
 
   const updateQueryParams = useCallback(
     (updates: Record<string, string | number>, { replace = false } = {}) => {
@@ -163,7 +156,7 @@ export default function ExploreClient() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Premium Hero Section with Image */}
-      <section className="relative h-[400px] lg:h-[450px] overflow-hidden">
+      <section className="relative h-[300px] lg:h-[340px] overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1920&h=800&fit=crop&auto=format"
           alt="Explore destinations"
@@ -231,18 +224,13 @@ export default function ExploreClient() {
                 ))}
               </select>
 
-              <select
+              <CountrySelect
                 value={country}
-                onChange={(e) => handleCountry(e.target.value)}
-                className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm min-w-[130px]"
-              >
-                <option value="">All Countries</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                onChange={handleCountry}
+                countries={countries}
+                isLoading={isCountriesLoading}
+                className="min-w-[180px]"
+              />
 
               <select
                 value={sort}
@@ -287,30 +275,7 @@ export default function ExploreClient() {
         </div>
 
         {/* Main Content */}
-        <div className="flex gap-8">
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 space-y-6 bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm">
-              <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4">
-                <Sparkles className="w-4 h-4 text-blue-500" />
-                <h3 className="font-semibold text-slate-900">Filters</h3>
-              </div>
-              <FilterSidebar
-                search={search}
-                onSearchChange={handleSearch}
-                category={category}
-                onCategoryChange={handleCategory}
-                country={country}
-                onCountryChange={handleCountry}
-                sort={sort}
-                onSortChange={handleSort}
-                onReset={handleReset}
-                categories={CATEGORIES}
-                countries={COUNTRIES}
-              />
-            </div>
-          </div>
-
+        <div>
           {/* Results Grid */}
           <div className="flex-1">
             {isLoading ? (
@@ -366,7 +331,8 @@ export default function ExploreClient() {
         onSortChange={handleSort}
         onReset={handleReset}
         categories={CATEGORIES}
-        countries={COUNTRIES}
+        countries={countries}
+        isCountriesLoading={isCountriesLoading}
       />
     </div>
   );

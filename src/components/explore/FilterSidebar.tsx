@@ -1,6 +1,7 @@
 'use client';
 
-import { Search, RotateCcw, X } from 'lucide-react';
+import { Search, RotateCcw } from 'lucide-react';
+import CountrySelect from './CountrySelect';
 
 interface FilterSidebarProps {
   search: string;
@@ -14,6 +15,7 @@ interface FilterSidebarProps {
   onReset: () => void;
   categories: string[];
   countries: string[];
+  isCountriesLoading?: boolean;
 }
 
 export default function FilterSidebar({
@@ -28,6 +30,7 @@ export default function FilterSidebar({
   onReset,
   categories,
   countries,
+  isCountriesLoading,
 }: FilterSidebarProps) {
   const isFiltered = search || category || country || sort;
 
@@ -74,18 +77,12 @@ export default function FilterSidebar({
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
           Country
         </h3>
-        <select
+        <CountrySelect
           value={country}
-          onChange={(e) => onCountryChange(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all cursor-pointer"
-        >
-          <option value="">All Countries</option>
-          {countries.map((ctry) => (
-            <option key={ctry} value={ctry}>
-              {ctry}
-            </option>
-          ))}
-        </select>
+          onChange={onCountryChange}
+          countries={countries}
+          isLoading={isCountriesLoading}
+        />
       </div>
 
       {/* Sort */}
