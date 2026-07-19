@@ -15,7 +15,6 @@ interface FilterSidebarProps {
   onReset: () => void;
   categories: string[];
   countries: string[];
-  isCountriesLoading?: boolean;
 }
 
 export default function FilterSidebar({
@@ -30,7 +29,6 @@ export default function FilterSidebar({
   onReset,
   categories,
   countries,
-  isCountriesLoading,
 }: FilterSidebarProps) {
   const isFiltered = search || category || country || sort;
 
@@ -81,7 +79,6 @@ export default function FilterSidebar({
           value={country}
           onChange={onCountryChange}
           countries={countries}
-          isLoading={isCountriesLoading}
         />
       </div>
 

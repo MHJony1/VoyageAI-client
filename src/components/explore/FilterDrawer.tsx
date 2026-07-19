@@ -20,7 +20,6 @@ interface FilterDrawerProps {
   onReset: () => void;
   categories: string[];
   countries: string[];
-  isCountriesLoading?: boolean;
 }
 
 export default function FilterDrawer({
@@ -37,7 +36,6 @@ export default function FilterDrawer({
   onReset,
   categories,
   countries,
-  isCountriesLoading,
 }: FilterDrawerProps) {
   useEffect(() => {
     if (isOpen) {
@@ -99,7 +97,6 @@ export default function FilterDrawer({
                 onReset={onReset}
                 categories={categories}
                 countries={countries}
-                isCountriesLoading={isCountriesLoading}
               />
 
               {/* Close Button */}

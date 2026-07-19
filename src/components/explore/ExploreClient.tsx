@@ -8,7 +8,7 @@ import { Search, Filter, Compass, X } from 'lucide-react';
 import Container from '@/components/Container';
 import { GridSkeleton } from '@/components/Loading';
 import { useExploreDestinations } from '@/hooks/useExploreDestinations';
-import { useCountries } from '@/hooks/useCountries';
+import { POPULAR_COUNTRIES } from '@/constants';
 import DestinationGrid from './DestinationGrid';
 import FilterDrawer from './FilterDrawer';
 import CountrySelect from './CountrySelect';
@@ -55,7 +55,8 @@ export default function ExploreClient() {
       limit: 9,
     });
 
-  const { data: countries = [], isLoading: isCountriesLoading } = useCountries();
+  // Static list of popular tourist countries for the filter dropdown
+  const countries = POPULAR_COUNTRIES;
 
   const updateQueryParams = useCallback(
     (updates: Record<string, string | number>, { replace = false } = {}) => {
@@ -228,7 +229,6 @@ export default function ExploreClient() {
                 value={country}
                 onChange={handleCountry}
                 countries={countries}
-                isLoading={isCountriesLoading}
                 className="min-w-[180px]"
               />
 
@@ -288,10 +288,14 @@ export default function ExploreClient() {
               >
                 <div className="text-6xl mb-4">🔍</div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  No destinations found
+                  {country
+                    ? `No destinations found for ${country}`
+                    : 'No destinations found'}
                 </h3>
                 <p className="text-slate-500">
-                  Try adjusting your search or filters
+                  {country
+                    ? 'We don’t have any destinations here yet. Try another country or filter.'
+                    : 'Try adjusting your search or filters'}
                 </p>
                 <button
                   onClick={handleReset}
@@ -332,7 +336,6 @@ export default function ExploreClient() {
         onReset={handleReset}
         categories={CATEGORIES}
         countries={countries}
-        isCountriesLoading={isCountriesLoading}
       />
     </div>
   );
