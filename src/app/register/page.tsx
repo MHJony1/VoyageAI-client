@@ -8,7 +8,10 @@ export const metadata = {
 export default function RegisterPage() {
   return (
     <PublicRoute>
-      <AuthLayout heading="Get Started" subheading="Create your account and begin your journey">
+      <AuthLayout
+        title="Start Your Journey"
+        subtitle="Join thousands of travelers exploring the world with AI-powered planning"
+      >
         <RegisterForm />
       </AuthLayout>
     </PublicRoute>

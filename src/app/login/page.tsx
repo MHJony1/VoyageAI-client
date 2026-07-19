@@ -8,7 +8,10 @@ export const metadata = {
 export default function LoginPage() {
   return (
     <PublicRoute>
-      <AuthLayout>
+      <AuthLayout
+        title="Welcome Back"
+        subtitle="Sign in to continue your journey with AI-powered travel planning"
+      >
         <LoginForm />
       </AuthLayout>
     </PublicRoute>
