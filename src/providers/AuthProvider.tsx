@@ -7,10 +7,10 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
-  googleLogin: (token: string) => Promise<void>;
-  demoLogin: () => Promise<void>;
+  login: (payload: LoginPayload) => Promise<User | null>;
+  register: (payload: RegisterPayload) => Promise<User | null>;
+  googleLogin: (token: string) => Promise<User | null>;
+  demoLogin: () => Promise<User | null>;
   logout: () => void;
   restoreSession: () => Promise<void>;
 }
@@ -57,28 +57,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await authService.login(payload);
     if (response.data) {
       persistSession(response.data.token, response.data.user);
+      return response.data.user;
     }
+    return null;
   }, [persistSession]);
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await authService.register(payload);
     if (response.data) {
       persistSession(response.data.token, response.data.user);
+      return response.data.user;
     }
+    return null;
   }, [persistSession]);
 
   const googleLogin = useCallback(async (token: string) => {
     const response = await authService.googleLogin({ token });
     if (response.data) {
       persistSession(response.data.token, response.data.user);
+      return response.data.user;
     }
+    return null;
   }, [persistSession]);
 
   const demoLogin = useCallback(async () => {
     const response = await authService.demoLogin();
     if (response.data) {
       persistSession(response.data.token, response.data.user);
+      return response.data.user;
     }
+    return null;
   }, [persistSession]);
 
   const logout = useCallback(() => {

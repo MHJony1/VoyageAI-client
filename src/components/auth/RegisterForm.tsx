@@ -20,6 +20,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
+import type { User as AuthUser } from '@/services/auth.service';
 import Button from '@/components/Button';
 import GoogleLoginButton from './GoogleLoginButton';
 
@@ -44,6 +45,11 @@ export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Admins land directly in the admin panel; everyone else goes to the dashboard
+  const redirectByRole = (user: AuthUser | null) => {
+    router.push(user?.role === 'admin' ? '/admin' : '/dashboard');
+  };
+
   const {
     register,
     handleSubmit,
@@ -63,14 +69,14 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
-      await registerUser({
+      const newUser = await registerUser({
         name: data.name,
         email: data.email,
         password: data.password,
       });
 
       toast.success('Account created successfully!');
-      router.push('/');
+      redirectByRole(newUser);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Registration failed';
@@ -83,9 +89,9 @@ export default function RegisterForm() {
   const handleGoogleSuccess = async (idToken: string) => {
     try {
       setIsLoading(true);
-      await googleLogin(idToken);
+      const loggedInUser = await googleLogin(idToken);
       toast.success('Account ready! Welcome to VoyageAI');
-      router.push('/');
+      redirectByRole(loggedInUser);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Google sign up failed';
       toast.error(message);
@@ -97,9 +103,9 @@ export default function RegisterForm() {
   const handleDemoLogin = async () => {
     try {
       setIsLoading(true);
-      await demoLogin();
+      const loggedInUser = await demoLogin();
       toast.success('Logged in with demo account');
-      router.push('/');
+      redirectByRole(loggedInUser);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Demo login failed';
       toast.error(message);

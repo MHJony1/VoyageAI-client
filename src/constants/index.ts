@@ -31,3 +31,55 @@ export const POPULAR_COUNTRIES = [
   'Egypt',
   'Morocco',
 ];
+
+/**
+ * Destination categories used across Explore filters and the admin
+ * destination form. Single source of truth to avoid drift.
+ */
+export const DESTINATION_CATEGORIES = [
+  'Beach',
+  'Cultural',
+  'Adventure',
+  'Urban',
+  'Mountain',
+  'Wildlife',
+  'Romantic',
+  'Wellness',
+];
+
+/** Best-season options for the admin destination form. */
+export const SEASONS = [
+  'Spring',
+  'Summer',
+  'Autumn',
+  'Winter',
+  'Year-round',
+  'Spring & Autumn',
+  'November to February',
+  'March to May',
+  'June to August',
+  'September to November',
+];
+
+/** Common currencies for the admin destination form. */
+export const CURRENCIES = [
+  'USD - US Dollar',
+  'EUR - Euro',
+  'GBP - British Pound',
+  'JPY - Japanese Yen',
+  'BDT - Bangladeshi Taka',
+  'INR - Indian Rupee',
+  'THB - Thai Baht',
+  'VND - Vietnamese Dong',
+  'IDR - Indonesian Rupiah',
+  'MYR - Malaysian Ringgit',
+  'SGD - Singapore Dollar',
+  'NPR - Nepalese Rupee',
+  'LKR - Sri Lankan Rupee',
+  'CHF - Swiss Franc',
+  'TRY - Turkish Lira',
+  'AED - UAE Dirham',
+  'MVR - Maldivian Rufiyaa',
+  'EGP - Egyptian Pound',
+  'MAD - Moroccan Dirham',
+];

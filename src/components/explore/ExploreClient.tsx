@@ -8,22 +8,13 @@ import { Search, Filter, Compass, X } from 'lucide-react';
 import Container from '@/components/Container';
 import { GridSkeleton } from '@/components/Loading';
 import { useExploreDestinations } from '@/hooks/useExploreDestinations';
-import { POPULAR_COUNTRIES } from '@/constants';
+import { POPULAR_COUNTRIES, DESTINATION_CATEGORIES } from '@/constants';
 import DestinationGrid from './DestinationGrid';
 import FilterDrawer from './FilterDrawer';
 import CountrySelect from './CountrySelect';
 import Pagination from './Pagination';
 
-const CATEGORIES = [
-  'Beach',
-  'Cultural',
-  'Adventure',
-  'Urban',
-  'Mountain',
-  'Wildlife',
-  'Romantic',
-  'Wellness',
-];
+const CATEGORIES = DESTINATION_CATEGORIES;
 
 export default function ExploreClient() {
   const router = useRouter();
