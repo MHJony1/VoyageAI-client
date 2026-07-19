@@ -9,15 +9,21 @@ import {
   Trash2,
   Edit2,
   Eye,
-  X,
   ChevronLeft,
   ChevronRight,
   Search,
+  Wallet,
 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useTrips, useDeleteTrip, useUpdateTrip } from '@/hooks/useTrips';
 import { CardSkeleton } from '@/components/Loading';
 import EmptyState from '@/components/EmptyState';
 import ErrorState from '@/components/ErrorState';
+import Modal from '@/components/Modal';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import Button from '@/components/Button';
 import { toast } from 'sonner';
 import { Trip } from '@/types';
 
@@ -31,7 +37,25 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-const STATUS_OPTIONS = ['active', 'completed', 'planned', 'cancelled'];
+const STATUS_OPTIONS = ['active', 'completed', 'planned', 'cancelled'] as const;
+
+const TRAVEL_STYLES = [
+  { value: 'luxury', label: 'Luxury' },
+  { value: 'budget', label: 'Budget' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'backpacker', label: 'Backpacker' },
+  { value: 'adventure', label: 'Adventure' },
+];
+
+const editTripSchema = z.object({
+  destination: z.string().min(2, 'Destination must be at least 2 characters'),
+  days: z.number({ error: 'Days is required' }).min(1, 'At least 1 day').max(90, 'Maximum 90 days'),
+  budget: z.number({ error: 'Budget is required' }).min(1, 'Budget must be greater than 0'),
+  travelStyle: z.string().min(1, 'Travel style is required'),
+  status: z.enum(STATUS_OPTIONS),
+});
+
+type EditTripFormData = z.infer<typeof editTripSchema>;
 
 export default function MyTripsPage() {
   const [page, setPage] = useState(1);
@@ -39,11 +63,20 @@ export default function MyTripsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
-  const [editStatus, setEditStatus] = useState('');
+  const [deletingTrip, setDeletingTrip] = useState<Trip | null>(null);
 
   const { data, isLoading, error } = useTrips(page, 10);
   const deleteTrip = useDeleteTrip();
   const updateTrip = useUpdateTrip();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<EditTripFormData>({
+    resolver: zodResolver(editTripSchema),
+  });
 
   const trips = data?.data || [];
   const pagination = data?.pagination;
@@ -54,28 +87,40 @@ export default function MyTripsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Delete this trip?')) {
-      try {
-        await deleteTrip.mutateAsync(id);
-        toast.success('Trip deleted');
-        setSelectedTrip(null);
-      } catch {
-        toast.error('Failed to delete trip');
-      }
+  const openEditModal = (trip: Trip) => {
+    setEditingTrip(trip);
+    reset({
+      destination: trip.destination,
+      days: trip.days,
+      budget: trip.budget,
+      travelStyle: trip.travelStyle,
+      status: (STATUS_OPTIONS as readonly string[]).includes(trip.status)
+        ? (trip.status as EditTripFormData['status'])
+        : 'planned',
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingTrip) return;
+    try {
+      await deleteTrip.mutateAsync(deletingTrip._id);
+      toast.success(`Trip to ${deletingTrip.destination} deleted`);
+      setDeletingTrip(null);
+      setSelectedTrip(null);
+    } catch {
+      toast.error('Failed to delete trip');
     }
   };
 
-  const handleStatusUpdate = async () => {
-    if (!editingTrip || !editStatus) return;
+  const onEditSubmit = async (formData: EditTripFormData) => {
+    if (!editingTrip) return;
     try {
       await updateTrip.mutateAsync({
         id: editingTrip._id,
-        payload: { status: editStatus as any },
+        payload: formData,
       });
       setEditingTrip(null);
-      setEditStatus('');
-      toast.success('Trip updated');
+      toast.success('Trip updated successfully');
     } catch {
       toast.error('Failed to update trip');
     }
@@ -192,17 +237,16 @@ export default function MyTripsPage() {
                       View
                     </button>
                     <button
-                      onClick={() => {
-                        setEditingTrip(trip);
-                        setEditStatus(trip.status);
-                      }}
+                      onClick={() => openEditModal(trip)}
                       className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
+                      title="Edit trip"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
-                      onClick={() => handleDelete(trip._id)}
+                      onClick={() => setDeletingTrip(trip)}
                       className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors"
+                      title="Delete trip"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -238,120 +282,173 @@ export default function MyTripsPage() {
       )}
 
       {/* View Trip Modal */}
-      <AnimatePresence>
+      <Modal
+        open={!!selectedTrip}
+        onClose={() => setSelectedTrip(null)}
+        title={selectedTrip?.destination}
+        size="lg"
+      >
         {selectedTrip && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedTrip(null)}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-slate-900">{selectedTrip.destination}</h2>
-                <button onClick={() => setSelectedTrip(null)} className="text-slate-500 hover:text-slate-700">
-                  <X size={24} />
-                </button>
+          <div className="space-y-4 text-slate-600">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Status</p>
+              <p className="mt-1 capitalize">{selectedTrip.status}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Days</p>
+              <p className="mt-1">{selectedTrip.days} days</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Budget</p>
+              <p className="mt-1">${selectedTrip.budget}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Travel Style</p>
+              <p className="mt-1 capitalize">{selectedTrip.travelStyle}</p>
+            </div>
+            {selectedTrip.interests && selectedTrip.interests.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-slate-500">Interests</p>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {selectedTrip.interests.map((interest) => (
+                    <span key={interest} className="px-2 py-1 bg-slate-100 rounded text-xs">
+                      {interest}
+                    </span>
+                  ))}
+                </div>
               </div>
-
-              <div className="space-y-4 text-slate-600">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Status</p>
-                  <p className="mt-1 capitalize">{selectedTrip.status}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Days</p>
-                  <p className="mt-1">{selectedTrip.days} days</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Budget</p>
-                  <p className="mt-1">${selectedTrip.budget}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Travel Style</p>
-                  <p className="mt-1 capitalize">{selectedTrip.travelStyle}</p>
-                </div>
-                {selectedTrip.interests && selectedTrip.interests.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">Interests</p>
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {selectedTrip.interests.map((interest) => (
-                        <span key={interest} className="px-2 py-1 bg-slate-100 rounded text-xs">
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {selectedTrip.itinerary && (
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">Itinerary</p>
-                    <p className="mt-1 text-sm line-clamp-3">{selectedTrip.itinerary}</p>
-                  </div>
-                )}
+            )}
+            {selectedTrip.itinerary && (
+              <div>
+                <p className="text-sm font-medium text-slate-500">Itinerary</p>
+                <p className="mt-1 text-sm line-clamp-3">{selectedTrip.itinerary}</p>
               </div>
-            </motion.div>
-          </motion.div>
+            )}
+          </div>
         )}
-      </AnimatePresence>
+      </Modal>
 
-      {/* Edit Status Modal */}
-      <AnimatePresence>
-        {editingTrip && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setEditingTrip(null)}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg max-w-md w-full p-6"
+      {/* Edit Trip Modal */}
+      <Modal
+        open={!!editingTrip}
+        onClose={() => setEditingTrip(null)}
+        title="Edit Trip"
+        description="Update the details of your trip"
+      >
+        <form onSubmit={handleSubmit(onEditSubmit)} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-1">Destination</label>
+            <input
+              type="text"
+              {...register('destination')}
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
+            />
+            {errors.destination && (
+              <p className="text-red-600 text-sm mt-1">{errors.destination.message}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-900 mb-1">Days</label>
+              <input
+                type="number"
+                min={1}
+                {...register('days', { valueAsNumber: true })}
+                className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              {errors.days && <p className="text-red-600 text-sm mt-1">{errors.days.message}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-900 mb-1">Budget ($)</label>
+              <input
+                type="number"
+                min={1}
+                {...register('budget', { valueAsNumber: true })}
+                className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              {errors.budget && (
+                <p className="text-red-600 text-sm mt-1">{errors.budget.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-1">Travel Style</label>
+            <select
+              {...register('travelStyle')}
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
             >
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Update Trip Status</h2>
+              {TRAVEL_STYLES.map((style) => (
+                <option key={style.value} value={style.value}>
+                  {style.label}
+                </option>
+              ))}
+            </select>
+            {errors.travelStyle && (
+              <p className="text-red-600 text-sm mt-1">{errors.travelStyle.message}</p>
+            )}
+          </div>
 
-              <select
-                value={editStatus}
-                onChange={(e) => setEditStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500 mb-4"
-              >
-                {STATUS_OPTIONS.map((status) => (
-                  <option key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </option>
-                ))}
-              </select>
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-1">Status</label>
+            <select
+              {...register('status')}
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
+            >
+              {STATUS_OPTIONS.map((status) => (
+                <option key={status} value={status}>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </option>
+              ))}
+            </select>
+            {errors.status && <p className="text-red-600 text-sm mt-1">{errors.status.message}</p>}
+          </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setEditingTrip(null)}
-                  className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleStatusUpdate}
-                  disabled={updateTrip.isPending}
-                  className="flex-1 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
-                >
-                  {updateTrip.isPending ? 'Saving...' : 'Save'}
-                </button>
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              onClick={() => setEditingTrip(null)}
+              disabled={updateTrip.isPending}
+              className="border-slate-200 text-slate-700 hover:bg-slate-50 border"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" fullWidth isLoading={updateTrip.isPending}>
+              {updateTrip.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        open={!!deletingTrip}
+        onClose={() => setDeletingTrip(null)}
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteTrip.isPending}
+        title="Delete Trip"
+        message="Are you sure you want to delete this trip?"
+        confirmLabel="Delete Trip"
+        itemDetails={
+          deletingTrip && (
+            <div className="space-y-1.5">
+              <p className="font-semibold text-slate-900">{deletingTrip.destination}</p>
+              <div className="flex items-center gap-4 text-xs text-slate-500">
+                <span className="flex items-center gap-1">
+                  <Calendar size={13} /> {deletingTrip.days} days
+                </span>
+                <span className="flex items-center gap-1">
+                  <Wallet size={13} /> ${deletingTrip.budget}
+                </span>
+                <span className="capitalize">{deletingTrip.status}</span>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          )
+        }
+      />
     </motion.div>
   );
 }

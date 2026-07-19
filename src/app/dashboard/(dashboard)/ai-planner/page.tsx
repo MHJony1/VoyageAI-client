@@ -125,7 +125,6 @@ export default function AIPlannerPage() {
 
     const formData = watch();
     const payload = {
-      destinationId: formData.destination,
       destination: formData.destination,
       days: Number(formData.numberOfDays),
       budget: Number(formData.budget),
@@ -139,8 +138,10 @@ export default function AIPlannerPage() {
       onSuccess: () => {
         toast.success('Trip saved successfully!');
       },
-      onError: (error) => {
-        toast.error(error.message || 'Failed to save trip');
+      onError: (error: any) => {
+        toast.error(
+          error?.response?.data?.message || error?.message || 'Failed to save trip'
+        );
       },
     });
   };
@@ -480,7 +481,13 @@ export default function AIPlannerPage() {
                           )}
                           {day.meals && (
                             <p className="mt-1 text-sm text-slate-600">
-                              <span className="font-medium">Meals:</span> {day.meals}
+                              <span className="font-medium">Meals:</span>{' '}
+                              {typeof day.meals === 'string'
+                                ? day.meals
+                                : Object.entries(day.meals)
+                                    .filter(([, v]) => v)
+                                    .map(([k, v]) => `${k}: ${v}`)
+                                    .join(' • ')}
                             </p>
                           )}
                         </div>

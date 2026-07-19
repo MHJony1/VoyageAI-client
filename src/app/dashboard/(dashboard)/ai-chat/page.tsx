@@ -13,8 +13,9 @@ import {
 } from 'lucide-react';
 import { useAIChatHistory, useSendChatMessage, useDeleteChatHistory, useClearAllChatHistory } from '@/hooks/useAIChatHistory';
 import { LoadingSpinner } from '@/components/Loading';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { toast } from 'sonner';
-import { ChatHistory } from '@/types';
+import { AIHistoryItem } from '@/types';
 
 const SUGGESTED_PROMPTS = [
   'Plan a 5-day trip to Bali',
@@ -56,11 +57,17 @@ export default function AIChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [deletingChat, setDeletingChat] = useState<AIHistoryItem | null>(null);
+  const [showClearAll, setShowClearAll] = useState(false);
 
   const { data: chatHistories = [], isLoading: historyLoading } = useAIChatHistory();
   const sendMessage = useSendChatMessage();
   const deleteHistory = useDeleteChatHistory();
   const clearHistory = useClearAllChatHistory();
+
+  const chatItems = Array.isArray(chatHistories)
+    ? chatHistories.filter((item) => item.type === 'chat')
+    : [];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,21 +93,21 @@ export default function AIChatPage() {
 
     try {
       const response = await sendMessage.mutateAsync({
-        historyId: currentHistoryId,
+        conversationId: currentHistoryId,
         message: text,
       });
 
       const aiMessage: LocalMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.content,
+        content: response.message,
         timestamp: new Date(),
       };
 
       setCurrentMessages((prev) => [...prev, aiMessage]);
 
-      if (!currentHistoryId && response._id) {
-        setCurrentHistoryId(response._id);
+      if (!currentHistoryId && response.conversationId) {
+        setCurrentHistoryId(response.conversationId);
       }
     } catch {
       toast.error('Failed to send message');
@@ -115,33 +122,44 @@ export default function AIChatPage() {
     setMessage('');
   };
 
-  const handleSelectHistory = (history: ChatHistory) => {
-    setCurrentHistoryId(history._id);
-    const messages: LocalMessage[] = history.messages.map((msg) => ({
-      id: msg._id,
-      role: msg.role,
-      content: msg.content,
-      timestamp: new Date(msg.createdAt),
-    }));
+  const handleSelectHistory = (history: AIHistoryItem) => {
+    setCurrentHistoryId(null);
+    const messages: LocalMessage[] = [
+      {
+        id: `${history._id}-user`,
+        role: 'user',
+        content: history.prompt,
+        timestamp: new Date(history.createdAt),
+      },
+      {
+        id: `${history._id}-assistant`,
+        role: 'assistant',
+        content: history.response,
+        timestamp: new Date(history.createdAt),
+      },
+    ];
     setCurrentMessages(messages);
   };
 
-  const handleDeleteHistory = async (historyId: string) => {
+  const handleConfirmDeleteChat = async () => {
+    if (!deletingChat) return;
     try {
-      await deleteHistory.mutateAsync(historyId);
-      if (currentHistoryId === historyId) {
+      await deleteHistory.mutateAsync(deletingChat._id);
+      if (currentHistoryId === deletingChat._id) {
         handleNewChat();
       }
+      setDeletingChat(null);
       toast.success('Conversation deleted');
     } catch {
       toast.error('Failed to delete conversation');
     }
   };
 
-  const handleClearHistory = async () => {
+  const handleConfirmClearHistory = async () => {
     try {
       await clearHistory.mutateAsync();
       handleNewChat();
+      setShowClearAll(false);
       toast.success('All conversations cleared');
     } catch {
       toast.error('Failed to clear conversations');
@@ -182,14 +200,14 @@ export default function AIChatPage() {
             <div className="flex items-center justify-center h-full">
               <LoadingSpinner className="h-8" />
             </div>
-          ) : chatHistories.length === 0 ? (
+          ) : chatItems.length === 0 ? (
             <div className="p-4 text-center">
               <History size={32} className="text-slate-300 mx-auto mb-2" />
               <p className="text-sm text-slate-500">No conversations yet</p>
             </div>
           ) : (
             <div className="p-2">
-              {chatHistories.map((history) => (
+              {chatItems.map((history) => (
                 <motion.div
                   key={history._id}
                   initial={{ opacity: 0, x: -20 }}
@@ -202,7 +220,7 @@ export default function AIChatPage() {
                   onClick={() => handleSelectHistory(history)}
                 >
                   <p className="text-sm font-medium truncate">
-                    {history.title || 'Conversation'}
+                    {history.prompt || 'Conversation'}
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
                     {new Date(history.createdAt).toLocaleDateString()}
@@ -210,7 +228,7 @@ export default function AIChatPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteHistory(history._id);
+                      setDeletingChat(history);
                     }}
                     className="hidden group-hover:block mt-2 p-1 hover:bg-red-100 rounded transition-colors"
                   >
@@ -222,10 +240,10 @@ export default function AIChatPage() {
           )}
         </div>
 
-        {chatHistories.length > 0 && (
+        {chatItems.length > 0 && (
           <div className="p-2 border-t border-slate-200">
             <button
-              onClick={handleClearHistory}
+              onClick={() => setShowClearAll(true)}
               className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
               Clear All History
@@ -312,6 +330,46 @@ export default function AIChatPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Delete Conversation Confirmation */}
+      <ConfirmDialog
+        open={!!deletingChat}
+        onClose={() => setDeletingChat(null)}
+        onConfirm={handleConfirmDeleteChat}
+        isLoading={deleteHistory.isPending}
+        title="Delete Conversation"
+        message="Are you sure you want to delete this conversation?"
+        confirmLabel="Delete"
+        itemDetails={
+          deletingChat && (
+            <div className="space-y-1.5">
+              <p className="font-semibold text-slate-900 line-clamp-2">
+                {deletingChat.prompt || 'Conversation'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {new Date(deletingChat.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          )
+        }
+      />
+
+      {/* Clear All Confirmation */}
+      <ConfirmDialog
+        open={showClearAll}
+        onClose={() => setShowClearAll(false)}
+        onConfirm={handleConfirmClearHistory}
+        isLoading={clearHistory.isPending}
+        title="Clear All Conversations"
+        message={
+          <>
+            This will permanently delete all{' '}
+            <span className="font-semibold text-slate-900">{chatItems.length}</span>{' '}
+            conversations.
+          </>
+        }
+        confirmLabel="Clear All"
+      />
     </motion.div>
   );
 }

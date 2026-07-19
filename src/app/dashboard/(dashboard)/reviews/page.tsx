@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Trash2, Edit2, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Star, Trash2, Edit2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,6 +10,9 @@ import { useReviews, useCreateReview, useDeleteReview, useUpdateReview } from '@
 import { useDestinations } from '@/hooks/useDestinations';
 import { Skeleton } from '@/components/Loading';
 import EmptyState from '@/components/EmptyState';
+import Modal from '@/components/Modal';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import Button from '@/components/Button';
 import { toast } from 'sonner';
 import { Review } from '@/types';
 
@@ -35,6 +38,7 @@ export default function ReviewsPage() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [deletingReview, setDeletingReview] = useState<Review | null>(null);
 
   const { data: reviewsData, isLoading: reviewsLoading } = useReviews(page, 10);
   const { data: destinations = [] } = useDestinations(50);
@@ -47,6 +51,7 @@ export default function ReviewsPage() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ReviewFormData>({
     resolver: zodResolver(reviewSchema),
@@ -61,6 +66,16 @@ export default function ReviewsPage() {
   const reviews = reviewsData?.data || [];
   const pagination = reviewsData?.pagination;
 
+  const destinationName = (id: string) => {
+    const dest = destinations.find((d) => d._id === id);
+    return dest ? `${dest.name}, ${dest.country}` : id;
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingReview(null);
+  };
+
   const onSubmit = async (data: ReviewFormData) => {
     try {
       if (editingReview) {
@@ -68,27 +83,26 @@ export default function ReviewsPage() {
           id: editingReview._id,
           payload: data,
         });
-        toast.success('Review updated');
+        toast.success('Review updated successfully');
       } else {
         await createReview.mutateAsync(data);
-        toast.success('Review created');
+        toast.success('Review created successfully');
       }
       reset();
-      setShowForm(false);
-      setEditingReview(null);
+      closeForm();
     } catch {
       toast.error(editingReview ? 'Failed to update review' : 'Failed to create review');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Delete this review?')) {
-      try {
-        await deleteReview.mutateAsync(id);
-        toast.success('Review deleted');
-      } catch {
-        toast.error('Failed to delete review');
-      }
+  const handleConfirmDelete = async () => {
+    if (!deletingReview) return;
+    try {
+      await deleteReview.mutateAsync(deletingReview._id);
+      toast.success('Review deleted');
+      setDeletingReview(null);
+    } catch {
+      toast.error('Failed to delete review');
     }
   };
 
@@ -124,7 +138,7 @@ export default function ReviewsPage() {
           <button
             onClick={() => {
               setEditingReview(null);
-              reset();
+              reset({ rating: 5, destinationId: '', comment: '' });
               setShowForm(true);
             }}
             className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors flex items-center gap-2"
@@ -163,7 +177,7 @@ export default function ReviewsPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="font-semibold text-slate-900 text-lg">
-                          {review.destinationId}
+                          {destinationName(review.destinationId)}
                         </h3>
                         <p className="text-xs text-slate-500 mt-1">
                           {new Date(review.createdAt).toLocaleDateString()}
@@ -198,7 +212,7 @@ export default function ReviewsPage() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(review._id)}
+                        onClick={() => setDeletingReview(review)}
                         className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors flex items-center gap-2"
                       >
                         <Trash2 size={16} />
@@ -236,132 +250,144 @@ export default function ReviewsPage() {
         )}
       </motion.div>
 
-      {/* Review Form Modal */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowForm(false)}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg max-w-md w-full p-6"
+      {/* Review Form Modal (create + edit) */}
+      <Modal
+        open={showForm}
+        onClose={closeForm}
+        title={editingReview ? 'Edit Review' : 'Write a Review'}
+        description={
+          editingReview
+            ? 'Update your rating and comments'
+            : 'Tell others about your experience'
+        }
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Destination */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-1">
+              Destination
+            </label>
+            <select
+              {...register('destinationId')}
+              disabled={!!editingReview}
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500 disabled:bg-slate-50 disabled:text-slate-500"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-900">
-                  {editingReview ? 'Edit Review' : 'Write a Review'}
-                </h2>
+              <option value="">Select a destination</option>
+              {destinations.map((dest) => (
+                <option key={dest._id} value={dest._id}>
+                  {dest.name}, {dest.country}
+                </option>
+              ))}
+            </select>
+            {errors.destinationId && (
+              <p className="text-red-600 text-sm mt-1">{errors.destinationId.message}</p>
+            )}
+          </div>
+
+          {/* Rating */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-3">Rating</label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
                 <button
-                  onClick={() => setShowForm(false)}
-                  className="text-slate-500 hover:text-slate-700"
+                  key={star}
+                  type="button"
+                  onClick={() => setValue('rating', star, { shouldValidate: true })}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  aria-label={`${star} star${star > 1 ? 's' : ''}`}
                 >
-                  <X size={24} />
+                  <Star
+                    size={24}
+                    className={
+                      star <= rating
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-slate-300'
+                    }
+                  />
                 </button>
+              ))}
+            </div>
+            {errors.rating && (
+              <p className="text-red-600 text-sm mt-1">{errors.rating.message}</p>
+            )}
+          </div>
+
+          {/* Comment */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-1">
+              Your Review
+            </label>
+            <textarea
+              {...register('comment')}
+              rows={4}
+              placeholder="Share your experience..."
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
+            />
+            {errors.comment && (
+              <p className="text-red-600 text-sm mt-1">{errors.comment.message}</p>
+            )}
+          </div>
+
+          {/* Submit */}
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              onClick={closeForm}
+              disabled={createReview.isPending || updateReview.isPending}
+              className="border-slate-200 text-slate-700 hover:bg-slate-50 border"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              fullWidth
+              isLoading={createReview.isPending || updateReview.isPending}
+            >
+              {createReview.isPending || updateReview.isPending
+                ? 'Saving...'
+                : editingReview
+                  ? 'Update Review'
+                  : 'Create Review'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        open={!!deletingReview}
+        onClose={() => setDeletingReview(null)}
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteReview.isPending}
+        title="Delete Review"
+        message="Are you sure you want to delete this review?"
+        confirmLabel="Delete Review"
+        itemDetails={
+          deletingReview && (
+            <div className="space-y-1.5">
+              <p className="font-semibold text-slate-900">
+                {destinationName(deletingReview.destinationId)}
+              </p>
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={14}
+                    className={
+                      i < deletingReview.rating
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-slate-300'
+                    }
+                  />
+                ))}
               </div>
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* Destination */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-1">
-                    Destination
-                  </label>
-                  <select
-                    {...register('destinationId')}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option value="">Select a destination</option>
-                    {destinations.map((dest) => (
-                      <option key={dest._id} value={dest._id}>
-                        {dest.name}, {dest.country}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.destinationId && (
-                    <p className="text-red-600 text-sm mt-1">{errors.destinationId.message}</p>
-                  )}
-                </div>
-
-                {/* Rating */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-3">Rating</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => {
-                          const input = document.querySelector(
-                            'input[type="hidden"][name="rating"]'
-                          ) as HTMLInputElement;
-                          if (input) input.value = star.toString();
-                        }}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                      >
-                        <Star
-                          size={24}
-                          className={
-                            star <= rating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-slate-300'
-                          }
-                        />
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="hidden"
-                    {...register('rating', { valueAsNumber: true })}
-                  />
-                </div>
-
-                {/* Comment */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-1">
-                    Your Review
-                  </label>
-                  <textarea
-                    {...register('comment')}
-                    rows={4}
-                    placeholder="Share your experience..."
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-                  {errors.comment && (
-                    <p className="text-red-600 text-sm mt-1">{errors.comment.message}</p>
-                  )}
-                </div>
-
-                {/* Submit */}
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={createReview.isPending || updateReview.isPending}
-                    className="flex-1 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
-                  >
-                    {createReview.isPending || updateReview.isPending
-                      ? 'Saving...'
-                      : editingReview
-                        ? 'Update'
-                        : 'Create'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <p className="text-xs text-slate-500 line-clamp-2">{deletingReview.comment}</p>
+            </div>
+          )
+        }
+      />
     </motion.div>
   );
 }

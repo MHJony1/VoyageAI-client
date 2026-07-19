@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Bell, Lock, Eye, LogOut } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 import ToggleSwitch from '@/components/ToggleSwitch';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 const settingsSchema = z.object({
   emailNotifications: z.boolean(),
@@ -60,6 +62,7 @@ export default function SettingsPage() {
   const { data: settingsData, isLoading: settingsLoading } = useUserSettings();
   const updateSettingsMutation = useUpdateSettings();
   const logoutAllDevicesMutation = useLogoutAllDevices();
+  const [showLogoutAllConfirm, setShowLogoutAllConfirm] = useState(false);
 
   const {
     control,
@@ -67,7 +70,7 @@ export default function SettingsPage() {
     formState: { isDirty },
   } = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: settingsData?.data || defaultSettings,
+    defaultValues: { ...defaultSettings, ...(settingsData?.data || {}) },
   });
 
   const onSubmit = async (data: SettingsForm) => {
@@ -80,10 +83,10 @@ export default function SettingsPage() {
   };
 
   const handleLogoutAllDevices = async () => {
-    if (!confirm('Are you sure? This will log you out on all devices.')) return;
     try {
       await logoutAllDevicesMutation.mutateAsync();
       toast.success('Logged out from all devices');
+      setShowLogoutAllConfirm(false);
       logout();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to logout from all devices');
@@ -292,9 +295,7 @@ export default function SettingsPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={handleLogoutAllDevices}
-              isLoading={logoutAllDevicesMutation.isPending}
-              disabled={logoutAllDevicesMutation.isPending}
+              onClick={() => setShowLogoutAllConfirm(true)}
               className="w-full"
             >
               <LogOut size={18} />
@@ -314,6 +315,18 @@ export default function SettingsPage() {
           </Button>
         </motion.div>
       </form>
+
+      {/* Logout All Devices Confirmation */}
+      <ConfirmDialog
+        open={showLogoutAllConfirm}
+        onClose={() => setShowLogoutAllConfirm(false)}
+        onConfirm={handleLogoutAllDevices}
+        isLoading={logoutAllDevicesMutation.isPending}
+        title="Logout All Devices"
+        message="You will be signed out on every device, including this one. You'll need to log in again to continue."
+        confirmLabel="Logout All"
+        irreversible={false}
+      />
     </motion.div>
   );
 }

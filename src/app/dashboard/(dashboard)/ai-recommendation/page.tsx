@@ -124,7 +124,6 @@ export default function AIRecommendationPage() {
       : Number(formData.budget);
 
     const payload = {
-      destinationId: destination.name,
       destination: destination.name,
       days: 7,
       budget: Number(formData.budget),
@@ -138,8 +137,10 @@ export default function AIRecommendationPage() {
       onSuccess: () => {
         toast.success('Recommendation saved successfully!');
       },
-      onError: (error) => {
-        toast.error(error.message || 'Failed to save recommendation');
+      onError: (error: any) => {
+        toast.error(
+          error?.response?.data?.message || error?.message || 'Failed to save recommendation'
+        );
       },
     });
   };
