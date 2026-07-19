@@ -27,8 +27,8 @@ export default function DestinationHero({ destination }: DestinationHeroProps) {
           />
         ) : (
           <Image
-            src={getPlaceholderImage(destination.title)}
-            alt={`${destination.title} banner`}
+            src={getPlaceholderImage(destination.title || 'Destination')}
+            alt={`${destination.title || 'Destination'} banner`}
             fill
             className="object-cover"
             priority

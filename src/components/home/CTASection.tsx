@@ -2,10 +2,18 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap } from 'lucide-react';
-import Section from '@/components/Section';
-import Container from '@/components/Container';
-import Button from '@/components/Button';
+import {
+  Sparkles,
+  ArrowRight,
+  Zap,
+  Crown,
+  Shield,
+  Rocket,
+  Users,
+  Compass,
+  Star,
+  Clock,
+} from 'lucide-react';
 
 export default function CTASection() {
   const containerVariants = {
@@ -29,79 +37,186 @@ export default function CTASection() {
   };
 
   return (
-    <Section bgColor="gradient" className="text-white relative overflow-hidden py-24 lg:py-40 bg-gradient-to-br from-teal-900 via-slate-900 to-sky-900">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-teal-500 rounded-full blur-3xl opacity-30 animate-pulse" />
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-sky-500 rounded-full blur-3xl opacity-30 animate-pulse" />
-        <div className="absolute top-1/2 left-1/4 w-72 h-72 bg-teal-400/20 rounded-full blur-3xl opacity-20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent" />
+    <section className="relative py-16 overflow-hidden bg-gradient-to-b from-slate-50/80 via-white to-slate-50/80">
+      {/* Background Effects */}
+      <div className="absolute inset-0">
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 50%, #e2e8f0 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+          }}
+        />
+
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.08, 0.15, 0.08],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="absolute -top-1/2 -left-1/4 w-[500px] h-[500px] bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.08, 0.15, 0.08],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 2,
+          }}
+          className="absolute -bottom-1/2 -right-1/4 w-[500px] h-[500px] bg-gradient-to-l from-amber-400/10 to-pink-400/10 rounded-full blur-3xl"
+        />
       </div>
 
-      <Container className="relative z-10">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="text-center max-w-4xl mx-auto"
+          className="mx-auto"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500/20 to-sky-500/20 backdrop-blur-md border border-teal-400/40 px-4 py-2 rounded-full mb-8 shadow-lg"
-          >
-            <Zap size={16} className="text-yellow-300" />
-            <span className="text-sm font-medium bg-gradient-to-r from-sky-200 to-teal-200 bg-clip-text text-transparent">Start Free Today</span>
-          </motion.div>
+          <div className="relative bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 backdrop-blur-sm border border-slate-200/60 rounded-3xl p-8 md:p-10 lg:p-12 shadow-lg hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 overflow-hidden">
+            {/* Decorative Elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/20 to-purple-100/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-amber-100/20 to-pink-100/20 rounded-full blur-3xl" />
 
-          <motion.h2
-            variants={itemVariants}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight tracking-tight space-y-2"
-          >
-            <span className="block text-white drop-shadow-lg">Begin Your</span>
-            <span className="block bg-gradient-to-r from-teal-200 via-sky-200 to-teal-100 bg-clip-text text-transparent text-5xl md:text-7xl lg:text-8xl drop-shadow-2xl">
-              Journey Today
-            </span>
-          </motion.h2>
+            {/* Top Decorative Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
 
-          <motion.p
-            variants={itemVariants}
-            className="text-lg md:text-2xl text-white/90 max-w-3xl mx-auto mb-12 leading-relaxed font-light"
-          >
-            Transform your travel experience with AI-powered planning. No credit card required.
-          </motion.p>
+            <div className="relative z-10">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                {/* Left Content - Text */}
+                <div className="lg:col-span-2">
+                  {/* Premium Badge */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 px-3.5 py-1 rounded-full border border-blue-200/30 mb-4"
+                  >
+                    <Crown className="w-3.5 h-3.5 text-amber-500" />
+                    <span className="text-[10px] text-slate-600 font-medium tracking-[0.2em] uppercase">
+                      Premium Platform
+                    </span>
+                    <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                  </motion.div>
 
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
-          >
-            <Link href="/register">
-              <Button
-                size="lg"
-                className="bg-white text-sky-600 hover:bg-white hover:scale-105 px-10 w-full sm:w-auto font-bold shadow-2xl hover:shadow-sky-500/50 transition-all duration-300"
+                  {/* Heading */}
+                  <motion.h2 variants={itemVariants}>
+                    <span className="block text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 leading-tight tracking-tight">
+                      Ready to{' '}
+                      <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Explore
+                      </span>
+                    </span>
+                    <span className="block text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 leading-tight tracking-tight">
+                      the World Differently?
+                    </span>
+                  </motion.h2>
+
+                  <motion.p
+                    variants={itemVariants}
+                    className="text-sm sm:text-base text-slate-500 max-w-lg mt-3 leading-relaxed"
+                  >
+                    Transform your travel experience with AI-powered planning.
+                    No credit card required, start your journey today.
+                  </motion.p>
+                </div>
+
+                {/* Right Content - CTA Buttons */}
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col sm:flex-row lg:flex-col gap-3"
+                >
+                  <Link href="/register" className="w-full">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full group relative px-6 py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-300 overflow-hidden flex items-center justify-center gap-2"
+                    >
+                      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      <span className="relative flex items-center gap-2">
+                        <Rocket size={18} />
+                        <span>Start Planning Now</span>
+                        <ArrowRight
+                          size={16}
+                          className="group-hover:translate-x-1 transition-transform"
+                        />
+                      </span>
+                    </motion.button>
+                  </Link>
+                  <Link href="/explore" className="w-full">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full px-6 py-3.5 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Compass size={18} />
+                      <span>Explore Destinations</span>
+                    </motion.button>
+                  </Link>
+                </motion.div>
+              </div>
+
+              {/* Bottom Section - Features & Trust */}
+              <motion.div
+                variants={itemVariants}
+                className="mt-6 pt-6 border-t border-slate-200/50 flex flex-wrap items-center justify-between gap-4"
               >
-                <Sparkles size={22} />
-                Start Planning Now
-                <ArrowRight size={22} />
-              </Button>
-            </Link>
-            <Link href="/explore">
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-2 border-white text-white hover:bg-white/15 hover:border-teal-300 hover:scale-105 px-10 w-full sm:w-auto font-semibold backdrop-blur-sm transition-all duration-300"
-              >
-                Explore Destinations
-              </Button>
-            </Link>
-          </motion.div>
+                {/* Feature Badges */}
+                <div className="flex flex-wrap items-center gap-3">
+                  {[
+                    { icon: Zap, label: 'AI Powered', color: 'text-blue-600' },
+                    {
+                      icon: Shield,
+                      label: 'Free Forever',
+                      color: 'text-emerald-600',
+                    },
+                    {
+                      icon: Clock,
+                      label: '24/7 Support',
+                      color: 'text-purple-600',
+                    },
+                    {
+                      icon: Users,
+                      label: '100K+ Users',
+                      color: 'text-rose-600',
+                    },
+                  ].map((feature, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-1.5 bg-slate-50/80 px-3 py-1.5 rounded-full border border-slate-200/50"
+                    >
+                      <feature.icon
+                        className={`w-3.5 h-3.5 ${feature.color}`}
+                      />
+                      <span className="text-xs text-slate-600 font-medium">
+                        {feature.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
-          <motion.p variants={itemVariants} className="text-white/80 text-sm font-medium">
-            <span className="bg-gradient-to-r from-sky-300 to-teal-300 bg-clip-text text-transparent">Join 100K+ travelers</span> • Free forever plan • No credit card needed
-          </motion.p>
+                {/* Trust Indicator */}
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span>4.9/5 average rating</span>
+                  <span className="w-px h-4 bg-slate-200" />
+                  <span>No credit card needed</span>
+                </div>
+              </motion.div>
+            </div>
+          </div>
         </motion.div>
-      </Container>
-    </Section>
+      </div>
+    </section>
   );
 }

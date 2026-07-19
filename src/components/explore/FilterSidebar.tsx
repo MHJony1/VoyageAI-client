@@ -1,8 +1,6 @@
 'use client';
 
-import { Search, RotateCcw } from 'lucide-react';
-import Button from '@/components/Button';
-import Input from '@/components/Input';
+import { Search, RotateCcw, X } from 'lucide-react';
 
 interface FilterSidebarProps {
   search: string;
@@ -34,27 +32,33 @@ export default function FilterSidebar({
   const isFiltered = search || category || country || sort;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Search */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Search</h3>
-        <Input
-          type="text"
-          placeholder="Search destinations..."
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          icon={<Search size={18} />}
-          className="text-sm"
-        />
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
+          Search
+        </h3>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search destinations..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+          />
+        </div>
       </div>
 
       {/* Category */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Category</h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
+          Category
+        </h3>
         <select
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="w-full px-4 py-2 text-sm border-2 border-slate-200 rounded-lg bg-white text-slate-900 focus:border-sky-600 focus:outline-none transition-colors cursor-pointer"
+          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all cursor-pointer"
         >
           <option value="">All Categories</option>
           {categories.map((cat) => (
@@ -67,11 +71,13 @@ export default function FilterSidebar({
 
       {/* Country */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Country</h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
+          Country
+        </h3>
         <select
           value={country}
           onChange={(e) => onCountryChange(e.target.value)}
-          className="w-full px-4 py-2 text-sm border-2 border-slate-200 rounded-lg bg-white text-slate-900 focus:border-sky-600 focus:outline-none transition-colors cursor-pointer"
+          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all cursor-pointer"
         >
           <option value="">All Countries</option>
           {countries.map((ctry) => (
@@ -84,11 +90,13 @@ export default function FilterSidebar({
 
       {/* Sort */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Sort By</h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
+          Sort By
+        </h3>
         <select
           value={sort}
           onChange={(e) => onSortChange(e.target.value)}
-          className="w-full px-4 py-2 text-sm border-2 border-slate-200 rounded-lg bg-white text-slate-900 focus:border-sky-600 focus:outline-none transition-colors cursor-pointer"
+          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all cursor-pointer"
         >
           <option value="">Most Recent</option>
           <option value="rating">Highest Rating</option>
@@ -98,15 +106,13 @@ export default function FilterSidebar({
 
       {/* Reset Button */}
       {isFiltered && (
-        <Button
-          variant="outline"
-          size="md"
+        <button
           onClick={onReset}
-          className="w-full flex items-center justify-center gap-2"
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all border border-slate-200"
         >
-          <RotateCcw size={16} />
+          <RotateCcw size={14} />
           Reset Filters
-        </Button>
+        </button>
       )}
     </div>
   );

@@ -7,10 +7,15 @@ export const metadata = {
   description: 'Explore detailed information about this destination',
 };
 
-export default function DestinationPage({ params }: { params: { id: string } }) {
+export default async function DestinationPage({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params;
   return (
     <Suspense fallback={<DetailSkeleton />}>
-      <DestinationDetailClient id={params.id} />
+      <DestinationDetailClient id={id} />
     </Suspense>
   );
 }

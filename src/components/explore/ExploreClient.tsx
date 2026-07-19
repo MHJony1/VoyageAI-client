@@ -1,271 +1,372 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sliders } from 'lucide-react';
+import Image from 'next/image';
+import { Search, Filter, Compass, Sparkles, X } from 'lucide-react';
 import Container from '@/components/Container';
-import PageHeader from '@/components/PageHeader';
-import Button from '@/components/Button';
 import { GridSkeleton } from '@/components/Loading';
-import ErrorState from '@/components/ErrorState';
-import EmptyState from '@/components/EmptyState';
 import { useExploreDestinations } from '@/hooks/useExploreDestinations';
 import DestinationGrid from './DestinationGrid';
 import FilterSidebar from './FilterSidebar';
 import FilterDrawer from './FilterDrawer';
 import Pagination from './Pagination';
-import { DestinationQueryParams } from '@/types';
 
-const DEFAULT_CATEGORIES = [
+const CATEGORIES = [
   'Beach',
   'Cultural',
   'Adventure',
   'Urban',
   'Mountain',
   'Wildlife',
-  'Luxury',
-  'Nature',
-  'Historical',
-  'Food',
+  'Romantic',
+  'Wellness',
+];
+const COUNTRIES = [
+  'USA',
+  'UK',
+  'France',
+  'Italy',
+  'Japan',
+  'Thailand',
+  'Australia',
+  'Brazil',
 ];
 
 export default function ExploreClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Parse URL params
-  const page = parseInt(searchParams.get('page') || '1', 10);
-  const search = searchParams.get('search') || '';
-  const category = searchParams.get('category') || '';
-  const country = searchParams.get('country') || '';
-  const sort = searchParams.get('sort') || '';
-
-  // Local state for search debounce
-  const [localSearch, setLocalSearch] = useState(search);
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [country, setCountry] = useState(searchParams.get('country') || '');
+  const [sort, setSort] = useState(searchParams.get('sort') || '');
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Debounce search input
+  // Debounce search so typing doesn't fire an API request per keystroke
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localSearch !== search) {
-        updateFilter({ search: localSearch, page: 1 });
-      }
-    }, 400);
-
+    const timer = setTimeout(() => setDebouncedSearch(search), 350);
     return () => clearTimeout(timer);
-  }, [localSearch, search]);
+  }, [search]);
 
-  // Build query params
-  const validSort = (sort === 'rating' || sort === 'budget' ? sort : undefined) as 'rating' | 'budget' | undefined;
-  const queryParams: DestinationQueryParams = {
-    page,
-    limit: 12,
-    ...(search && { search }),
-    ...(category && { category }),
-    ...(country && { country }),
-    ...(validSort && { sort: validSort }),
+  // Backend-driven search/filter/sort/pagination. The service layer passes
+  // these through axios `params`, so they're serialized as real query params.
+  const { destinations, pagination, isLoading, error, refetch } =
+    useExploreDestinations({
+      search: debouncedSearch || undefined,
+      category: category || undefined,
+      country: country || undefined,
+      sort: sort === 'rating' || sort === 'budget' ? sort : undefined,
+      page,
+      limit: 9,
+    });
+
+  const updateQueryParams = useCallback(
+    (updates: Record<string, string | number>, { replace = false } = {}) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value) {
+          params.set(key, String(value));
+        } else {
+          params.delete(key);
+        }
+      });
+
+      const url = `/explore?${params.toString()}`;
+      if (replace) {
+        router.replace(url, { scroll: false });
+      } else {
+        router.push(url, { scroll: false });
+      }
+    },
+    [router, searchParams],
+  );
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+    // replace, not push — typing shouldn't create a history entry per keystroke
+    updateQueryParams({ search: value, page: 1 }, { replace: true });
   };
 
-  // Fetch data
-  const { destinations, pagination, isLoading, error, refetch } = useExploreDestinations(queryParams);
-
-  // Derive filter options from data
-  const categories = useMemo(() => {
-    const fromData = Array.from(
-      new Set([...DEFAULT_CATEGORIES, ...destinations.map((d) => d.category)].filter(Boolean))
-    ).sort();
-    return fromData;
-  }, [destinations]);
-
-  const countries = useMemo(() => {
-    return Array.from(new Set(destinations.map((d) => d.country))).sort();
-  }, [destinations]);
-
-  // Update URL and filters
-  const updateFilter = (updates: Record<string, any>) => {
-    const params = new URLSearchParams();
-
-    const newPage = updates.page ?? page;
-    const newSearch = updates.search !== undefined ? updates.search : search;
-    const newCategory = updates.category !== undefined ? updates.category : category;
-    const newCountry = updates.country !== undefined ? updates.country : country;
-    const newSort = updates.sort !== undefined ? updates.sort : sort;
-
-    if (newPage > 1) params.set('page', String(newPage));
-    if (newSearch) params.set('search', newSearch);
-    if (newCategory) params.set('category', newCategory);
-    if (newCountry) params.set('country', newCountry);
-    if (newSort) params.set('sort', newSort);
-
-    router.replace(`/explore?${params.toString()}`);
+  const handleCategory = (value: string) => {
+    setCategory(value);
+    setPage(1);
+    updateQueryParams({ category: value, page: 1 });
   };
 
-  // Handle reset filters
-  const handleResetFilters = () => {
-    setLocalSearch('');
-    router.replace('/explore');
+  const handleCountry = (value: string) => {
+    setCountry(value);
+    setPage(1);
+    updateQueryParams({ country: value, page: 1 });
   };
 
-  // Handle filter changes
-  const handleSearchChange = (value: string) => {
-    setLocalSearch(value);
-  };
-
-  const handleCategoryChange = (value: string) => {
-    updateFilter({ category: value, page: 1 });
-  };
-
-  const handleCountryChange = (value: string) => {
-    updateFilter({ country: value, page: 1 });
-  };
-
-  const handleSortChange = (value: string) => {
-    updateFilter({ sort: value, page: 1 });
+  const handleSort = (value: string) => {
+    setSort(value);
+    setPage(1);
+    updateQueryParams({ sort: value, page: 1 });
   };
 
   const handlePageChange = (newPage: number) => {
-    updateFilter({ page: newPage });
+    setPage(newPage);
+    updateQueryParams({ page: newPage });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleReset = () => {
+    setSearch('');
+    setCategory('');
+    setCountry('');
+    setSort('');
+    setPage(1);
+    router.push('/explore', { scroll: false });
+  };
+
+  // Server-reported totals — the API returns one page of at most `limit`
+  // items, so totals must come from the pagination metadata, not array length
   const totalPages = pagination?.totalPages || 1;
-  const isEmpty = !isLoading && destinations.length === 0;
+  const totalResults = pagination?.total ?? destinations.length;
+  const isFiltered = search || category || country || sort;
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    setSearch(params.get('search') || '');
+    setCategory(params.get('category') || '');
+    setCountry(params.get('country') || '');
+    setSort(params.get('sort') || '');
+    setPage(Number(params.get('page')) || 1);
+  }, [searchParams]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-slate-900 mb-2">
+            Something went wrong
+          </h3>
+          <p className="text-slate-500">Failed to load destinations</p>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <PageHeader
-        title="Explore Destinations"
-        description="Discover incredible destinations from around the world. Search, filter, and find your next adventure."
-      />
+    <div className="min-h-screen bg-slate-50">
+      {/* Premium Hero Section with Image */}
+      <section className="relative h-[400px] lg:h-[450px] overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1920&h=800&fit=crop&auto=format"
+          alt="Explore destinations"
+          fill
+          className="object-cover"
+          priority
+          quality={100}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
 
-      {/* Main Content */}
-      <section className="section-py">
-        <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Desktop Sidebar */}
+        <div className="relative z-10 h-full flex items-center justify-center">
+          <Container>
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              className="hidden lg:block"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center max-w-3xl mx-auto"
             >
-              <div className="sticky top-24 bg-slate-50 rounded-2xl border border-slate-200 p-6">
-                <FilterSidebar
-                  search={localSearch}
-                  onSearchChange={handleSearchChange}
-                  category={category}
-                  onCategoryChange={handleCategoryChange}
-                  country={country}
-                  onCountryChange={handleCountryChange}
-                  sort={sort}
-                  onSortChange={handleSortChange}
-                  onReset={handleResetFilters}
-                  categories={categories}
-                  countries={countries}
-                />
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/20 mb-4">
+                <Compass className="w-3.5 h-3.5 text-amber-300" />
+                <span className="text-[10px] font-medium text-white/90 tracking-[0.2em] uppercase">
+                  Discover Your Next Adventure
+                </span>
               </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 tracking-tight">
+                Explore <span className="text-amber-300">Destinations</span>
+              </h1>
+              <p className="text-white/80 text-lg max-w-2xl mx-auto">
+                Discover incredible destinations from around the world. Find
+                your perfect getaway.
+              </p>
             </motion.div>
+          </Container>
+        </div>
+      </section>
 
-            {/* Results Column */}
-            <div className="lg:col-span-3 space-y-8">
-              {/* Mobile Filter Button */}
-              <div className="lg:hidden flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={() => setIsDrawerOpen(true)}
-                  className="flex items-center gap-2"
+      <Container className="py-8">
+        {/* Search & Filter Bar - Only once */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8">
+          <div className="relative flex-1 w-full lg:max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search destinations..."
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 outline-none shadow-sm"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 w-full lg:w-auto">
+            {/* Desktop Filters */}
+            <div className="hidden lg:flex items-center gap-3">
+              <select
+                value={category}
+                onChange={(e) => handleCategory(e.target.value)}
+                className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm min-w-[130px]"
+              >
+                <option value="">All Categories</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={country}
+                onChange={(e) => handleCountry(e.target.value)}
+                className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm min-w-[130px]"
+              >
+                <option value="">All Countries</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={sort}
+                onChange={(e) => handleSort(e.target.value)}
+                className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm min-w-[130px]"
+              >
+                <option value="">Most Recent</option>
+                <option value="rating">Highest Rating</option>
+                <option value="budget">Budget (Low to High)</option>
+              </select>
+
+              {isFiltered && (
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-1.5 px-3 py-2.5 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all"
                 >
-                  <Sliders size={18} />
-                  Filters
-                </Button>
-                {pagination && (
-                  <span className="text-sm text-slate-600">
-                    {pagination.total} results
-                  </span>
-                )}
+                  <X className="w-4 h-4" />
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Filter Button */}
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+            >
+              <Filter className="w-4 h-4 text-slate-600" />
+              <span className="text-sm text-slate-700">Filters</span>
+              {isFiltered && (
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+              )}
+            </button>
+
+            {/* Results Count */}
+            <div className="hidden sm:block text-sm text-slate-500 whitespace-nowrap">
+              {isLoading
+                ? 'Loading...'
+                : `${totalResults} destination${totalResults === 1 ? '' : 's'}`}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex gap-8">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-24 space-y-6 bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm">
+              <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4">
+                <Sparkles className="w-4 h-4 text-blue-500" />
+                <h3 className="font-semibold text-slate-900">Filters</h3>
               </div>
+              <FilterSidebar
+                search={search}
+                onSearchChange={handleSearch}
+                category={category}
+                onCategoryChange={handleCategory}
+                country={country}
+                onCountryChange={handleCountry}
+                sort={sort}
+                onSortChange={handleSort}
+                onReset={handleReset}
+                categories={CATEGORIES}
+                countries={COUNTRIES}
+              />
+            </div>
+          </div>
 
-              {/* Results Header */}
-              {pagination && !isEmpty && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-sm text-slate-600"
+          {/* Results Grid */}
+          <div className="flex-1">
+            {isLoading ? (
+              <GridSkeleton count={9} />
+            ) : destinations?.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-16 bg-white rounded-2xl border border-slate-200/60"
+              >
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                  No destinations found
+                </h3>
+                <p className="text-slate-500">
+                  Try adjusting your search or filters
+                </p>
+                <button
+                  onClick={handleReset}
+                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
                 >
-                  Showing {(page - 1) * 12 + 1}–
-                  {Math.min(page * 12, pagination.total)} of{' '}
-                  {pagination.total} results
-                </motion.div>
-              )}
-
-              {/* Loading State */}
-              {isLoading && <GridSkeleton count={12} />}
-
-              {/* Error State */}
-              {error && !isLoading && (
-                <ErrorState
-                  title="Failed to load destinations"
-                  message="Something went wrong while fetching destinations. Please try again."
-                  onRetry={() => refetch()}
-                />
-              )}
-
-              {/* Empty State */}
-              {isEmpty && !error && (
-                <EmptyState
-                  icon="search"
-                  title="No destinations found"
-                  description="Try adjusting your filters or search terms to find what you're looking for."
-                  action={{
-                    label: 'Reset Filters',
-                    onClick: handleResetFilters,
-                  }}
-                />
-              )}
-
-              {/* Grid */}
-              {!isLoading && !error && !isEmpty && (
+                  Clear all filters
+                </button>
+              </motion.div>
+            ) : (
+              <>
                 <DestinationGrid destinations={destinations} />
-              )}
 
-              {/* Pagination */}
-              {!isLoading && !error && !isEmpty && totalPages > 1 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex justify-center mt-12"
-                >
+                <div className="mt-8">
                   <Pagination
                     page={page}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                   />
-                </motion.div>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
-        </Container>
-      </section>
+        </div>
+      </Container>
 
       {/* Mobile Filter Drawer */}
       <FilterDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        search={localSearch}
-        onSearchChange={handleSearchChange}
+        search={search}
+        onSearchChange={handleSearch}
         category={category}
-        onCategoryChange={handleCategoryChange}
+        onCategoryChange={handleCategory}
         country={country}
-        onCountryChange={handleCountryChange}
+        onCountryChange={handleCountry}
         sort={sort}
-        onSortChange={handleSortChange}
-        onReset={handleResetFilters}
-        categories={categories}
-        countries={countries}
+        onSortChange={handleSort}
+        onReset={handleReset}
+        categories={CATEGORIES}
+        countries={COUNTRIES}
       />
     </div>
   );
