@@ -71,7 +71,7 @@ export default function Navbar() {
     { href: '/', label: 'Home', icon: Home },
     { href: '/explore', label: 'Explore', icon: Compass },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/ai/planner', label: 'AI Planner', icon: Bot },
+    { href: 'dashboard/ai-planner', label: 'AI Planner', icon: Bot },
   ];
 
   const navLinks = isAuthenticated ? authenticatedLinks : publicLinks;

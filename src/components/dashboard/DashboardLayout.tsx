@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -14,7 +15,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-[calc(100vh-4rem)] bg-slate-50">
+      <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/80 overflow-hidden">
         {/* Sidebar */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -24,8 +25,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <DashboardHeader onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
           {/* Content */}
-          <main className="flex-1 overflow-y-auto">
-            {children}
+          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="max-w-7xl mx-auto"
+            >
+              {children}
+            </motion.div>
           </main>
         </div>
       </div>
