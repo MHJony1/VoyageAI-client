@@ -14,6 +14,7 @@ import {
   Crown,
   Home,
   Compass,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
@@ -187,6 +188,16 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
                   {/* Menu Items */}
                   <div className="py-1">
+                    {user?.role === 'admin' && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 transition-colors font-medium"
+                      >
+                        <Shield size={16} className="text-indigo-500" />
+                        Admin Panel
+                      </Link>
+                    )}
                     <Link
                       href="/dashboard/profile"
                       onClick={() => setIsDropdownOpen(false)}

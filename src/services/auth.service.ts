@@ -7,6 +7,7 @@ export interface User {
   photo?: string;
   provider: string;
   role: string;
+  blocked?: boolean;
   createdAt: string;
   updatedAt: string;
 }

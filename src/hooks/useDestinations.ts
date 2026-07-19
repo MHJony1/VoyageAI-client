@@ -11,6 +11,11 @@ interface Destination {
   reviewCount: number;
   budget: string;
   category: string;
+  id?: string;
+  title?: string;
+  thumbnail?: string;
+  estimatedBudget?: number;
+  bestSeason?: string;
 }
 
 async function fetchDestinations(limit?: number): Promise<Destination[]> {

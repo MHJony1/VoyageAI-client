@@ -332,7 +332,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import {
   Star,
   MapPin,
@@ -341,7 +341,6 @@ import {
   Share2,
   Clock,
   Users,
-  Award,
   Sparkles,
   Crown,
   Compass,
@@ -349,7 +348,6 @@ import {
 } from 'lucide-react';
 import Section from '@/components/Section';
 import Container from '@/components/Container';
-import Button from '@/components/Button';
 import { GridSkeleton } from '@/components/Loading';
 import ErrorState from '@/components/ErrorState';
 import { useFeaturedDestinations } from '@/hooks/useDestinations';
@@ -386,14 +384,14 @@ export default function FeaturedDestinations() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.5,
-        ease: [0.25, 0.1, 0.25, 1],
+        ease: [0.25, 0.1, 0.25, 1] as const,
       },
     },
   };

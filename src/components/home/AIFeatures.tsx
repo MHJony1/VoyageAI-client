@@ -135,14 +135,11 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { 
-  Sparkles, MapPin, MessageSquare, ArrowRight, Zap, 
-  Globe, Compass, Star, Crown, Shield, Award,
-  Brain, Bot, Coffee, Cloud, Sun, Moon, Users
+import { motion, type Variants } from 'framer-motion';
+import {
+  Sparkles, MapPin, MessageSquare, ArrowRight, Zap,
+  Globe, Star, Crown, Shield, Users
 } from 'lucide-react';
-import Section from '@/components/Section';
-import Container from '@/components/Container';
 
 // Deterministic pseudo-random so SSR and client render identical values
 const seededRandom = (index: number, salt: number) => {
@@ -195,14 +192,14 @@ export default function AIFeatures() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { 
+      transition: {
         duration: 0.6,
-        ease: [0.25, 0.1, 0.25, 1],
+        ease: [0.25, 0.1, 0.25, 1] as const,
       },
     },
   };

@@ -10,36 +10,82 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  Sparkles,
+  Crown,
+  Clock,
+  Filter,
+  MessageCircle,
+  Compass,
 } from 'lucide-react';
-import { useAIChatHistory, useDeleteChatHistory, useClearAllChatHistory } from '@/hooks/useAIChatHistory';
+import {
+  useAIChatHistory,
+  useDeleteChatHistory,
+  useClearAllChatHistory,
+} from '@/hooks/useAIChatHistory';
 import { Skeleton } from '@/components/Loading';
-import EmptyState from '@/components/EmptyState';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { toast } from 'sonner';
 import { AIHistoryItem } from '@/types';
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
 };
 
-const AI_TYPE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  planner: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Trip Plan' },
-  recommendation: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Recommendation' },
-  chat: { bg: 'bg-sky-100', text: 'text-sky-700', label: 'Chat' },
+const AI_TYPE_COLORS: Record<
+  string,
+  { bg: string; text: string; border: string; icon: any; label: string }
+> = {
+  planner: {
+    bg: 'bg-gradient-to-r from-blue-50 to-blue-100',
+    text: 'text-blue-700',
+    border: 'border-blue-200',
+    icon: Compass,
+    label: 'Trip Plan',
+  },
+  recommendation: {
+    bg: 'bg-gradient-to-r from-purple-50 to-purple-100',
+    text: 'text-purple-700',
+    border: 'border-purple-200',
+    icon: Sparkles,
+    label: 'Recommendation',
+  },
+  chat: {
+    bg: 'bg-gradient-to-r from-sky-50 to-sky-100',
+    text: 'text-sky-700',
+    border: 'border-sky-200',
+    icon: MessageCircle,
+    label: 'Chat',
+  },
 };
+
+const TYPE_FILTERS = [
+  { value: 'all', label: 'All Types' },
+  { value: 'planner', label: 'Trip Plans' },
+  { value: 'recommendation', label: 'Recommendations' },
+  { value: 'chat', label: 'Chats' },
+];
 
 export default function AIHistoryPage() {
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [selectedItem, setSelectedItem] = useState<AIHistoryItem | null>(null);
   const [page, setPage] = useState(1);
   const [deletingItem, setDeletingItem] = useState<AIHistoryItem | null>(null);
   const [showClearAll, setShowClearAll] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const { data: histories = [], isLoading } = useAIChatHistory();
   const deleteHistory = useDeleteChatHistory();
@@ -48,17 +94,17 @@ export default function AIHistoryPage() {
   const items = Array.isArray(histories) ? histories : [];
 
   const filteredHistories = items.filter((item) => {
-    const term = search.toLowerCase();
-    return (
-      item.prompt?.toLowerCase().includes(term) ||
-      item.response?.toLowerCase().includes(term)
-    );
+    const matchesSearch =
+      item.prompt?.toLowerCase().includes(search.toLowerCase()) ||
+      item.response?.toLowerCase().includes(search.toLowerCase());
+    const matchesType = typeFilter === 'all' || item.type === typeFilter;
+    return matchesSearch && matchesType;
   });
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 8;
   const paginatedItems = filteredHistories.slice(
     (page - 1) * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE
+    page * ITEMS_PER_PAGE,
   );
   const totalPages = Math.ceil(filteredHistories.length / ITEMS_PER_PAGE);
 
@@ -90,157 +136,284 @@ export default function AIHistoryPage() {
     toast.success('Copied to clipboard');
   };
 
+  const getTypeColors = (type: string) => {
+    return AI_TYPE_COLORS[type] || AI_TYPE_COLORS.chat;
+  };
+
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="p-4 md:p-6 max-w-4xl mx-auto"
+      className="p-4 md:p-6 max-w-6xl mx-auto"
     >
-      {/* Header */}
+      {/* Premium Header */}
       <motion.div variants={itemVariants} className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <History className="text-orange-600" size={24} />
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 rounded-2xl blur-xl opacity-30" />
+              <div className="relative w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <History className="w-7 h-7 text-white" />
+              </div>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">AI Request History</h1>
-              <p className="text-slate-600">View your past AI interactions</p>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                AI History
+              </h1>
+              <p className="text-slate-500 flex items-center gap-2">
+                <span>View your past AI interactions</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                <span className="text-sm font-medium text-slate-700">
+                  {filteredHistories.length} entries
+                </span>
+              </p>
             </div>
           </div>
-          {items.length > 0 && (
-            <button
-              onClick={() => setShowClearAll(true)}
-              className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
-            >
-              Clear All
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {items.length > 0 && (
+              <button
+                onClick={() => setShowClearAll(true)}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 text-sm font-medium border border-red-200/50 hover:border-red-300/50"
+              >
+                <Trash2 size={16} />
+                Clear All
+              </button>
+            )}
+            <div className="flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-orange-400/20 px-4 py-2 rounded-full border border-amber-200/30">
+              <Crown className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-medium text-amber-700">
+                Premium History
+              </span>
+            </div>
+          </div>
         </div>
       </motion.div>
 
-      {/* Search */}
+      {/* Premium Filters */}
       <motion.div variants={itemVariants} className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search history..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
-          />
+        <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
+          <div className="relative flex-1 w-full">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search history..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200/60 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-slate-900 placeholder:text-slate-400 shadow-sm"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-lg transition-all"
+              >
+                <X size={16} className="text-slate-400" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {/* Desktop Type Filter */}
+            <div className="hidden md:flex items-center gap-2">
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-3 bg-white border border-slate-200/60 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-slate-700 text-sm shadow-sm min-w-[140px]"
+              >
+                {TYPE_FILTERS.map((filter) => (
+                  <option key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Mobile Filter Button */}
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="md:hidden flex items-center gap-2 px-4 py-3 bg-white border border-slate-200/60 rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+            >
+              <Filter size={18} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Filter</span>
+              {typeFilter !== 'all' && (
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+              )}
+            </button>
+
+            {/* Mobile Filter Dropdown */}
+            {isFilterOpen && (
+              <div className="md:hidden absolute mt-2 right-0 w-48 bg-white border border-slate-200/60 rounded-xl shadow-lg z-10 p-2">
+                {TYPE_FILTERS.map((filter) => (
+                  <button
+                    key={filter.value}
+                    onClick={() => {
+                      setTypeFilter(filter.value);
+                      setIsFilterOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                      typeFilter === filter.value
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
 
       {/* History List */}
       <motion.div variants={itemVariants}>
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-20" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-slate-200/60 p-4"
+              >
+                <Skeleton className="h-6 w-32 mb-2" />
+                <Skeleton className="h-4 w-full mb-1" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
             ))}
           </div>
         ) : items.length === 0 ? (
-          <EmptyState title="No history" description="Your AI interactions will appear here" />
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-12 text-center shadow-sm">
+            <div className="text-6xl mb-4">📜</div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">
+              No history yet
+            </h3>
+            <p className="text-slate-500">
+              Your AI interactions will appear here
+            </p>
+          </div>
         ) : filteredHistories.length === 0 ? (
-          <EmptyState title="No results" description="Try a different search" />
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-12 text-center shadow-sm">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">
+              No results found
+            </h3>
+            <p className="text-slate-500">
+              Try adjusting your search or filters
+            </p>
+          </div>
         ) : (
-          <>
-            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-              <AnimatePresence mode="popLayout">
-                {paginatedItems.map((history) => {
-                  const colors = AI_TYPE_COLORS[history.type] || AI_TYPE_COLORS.chat;
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AnimatePresence mode="popLayout">
+              {paginatedItems.map((history) => {
+                const colors = getTypeColors(history.type);
+                const Icon = colors.icon;
 
-                  return (
-                    <motion.div
-                      key={history._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      onClick={() => setSelectedItem(history)}
-                      className="p-4 border-b border-slate-200 last:border-b-0 hover:bg-slate-50 cursor-pointer transition-colors group"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text}`}>
-                              {colors.label}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {new Date(history.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <h3 className="font-medium text-slate-900 mb-1 line-clamp-1">
-                            {history.prompt || 'Request'}
-                          </h3>
-                          {history.response && (
-                            <p className="text-sm text-slate-600 line-clamp-2">
-                              {history.response}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (history.prompt) handleCopy(history.prompt);
-                            }}
-                            className="p-2 hover:bg-slate-200 rounded transition-colors"
-                            title="Copy prompt"
-                          >
-                            <Copy size={16} className="text-slate-600" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingItem(history);
-                            }}
-                            className="p-2 hover:bg-red-100 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} className="text-red-600" />
-                          </button>
-                        </div>
+                return (
+                  <motion.div
+                    key={history._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => setSelectedItem(history)}
+                    className="bg-white rounded-xl border border-slate-200/60 p-5 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 cursor-pointer group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}
+                      >
+                        <Icon size={18} className={colors.text} />
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${colors.bg} ${colors.text} ${colors.border}`}
+                          >
+                            {colors.label}
+                          </span>
+                          <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                            <Clock size={10} />
+                            {new Date(history.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h3 className="font-medium text-slate-900 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                          {history.prompt || 'Request'}
+                        </h3>
+                        {history.response && (
+                          <p className="text-sm text-slate-500 line-clamp-2">
+                            {history.response}
+                          </p>
+                        )}
+                      </div>
+                    </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <motion.div variants={itemVariants} className="mt-6 flex justify-center items-center gap-4">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="p-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <span className="text-sm text-slate-600">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="p-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </motion.div>
-            )}
-          </>
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-end gap-1.5 mt-3 pt-3 border-t border-slate-100">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (history.prompt) handleCopy(history.prompt);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        title="Copy prompt"
+                      >
+                        <Copy size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingItem(history);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        title="Delete"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <motion.div
+            variants={itemVariants}
+            className="mt-8 flex justify-center items-center gap-3"
+          >
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="p-2.5 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 rounded-xl transition-all border border-slate-200/60"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-sm font-medium text-slate-600">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="p-2.5 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 rounded-xl transition-all border border-slate-200/60"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </motion.div>
         )}
       </motion.div>
 
-      {/* Detail Modal */}
+      {/* Detail Modal - Premium */}
       <AnimatePresence>
         {selectedItem && (
           <motion.div
@@ -248,60 +421,77 @@ export default function AIHistoryPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedItem(null)}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6"
+              className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-900">
-                  {(AI_TYPE_COLORS[selectedItem.type] || AI_TYPE_COLORS.chat).label}
-                </h2>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-xl ${getTypeColors(selectedItem.type).bg} flex items-center justify-center`}
+                  >
+                    {(() => {
+                      const colors = getTypeColors(selectedItem.type);
+                      const Icon = colors.icon;
+                      return <Icon size={18} className={colors.text} />;
+                    })()}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">
+                      {getTypeColors(selectedItem.type).label}
+                    </h2>
+                    <p className="text-xs text-slate-400">
+                      {new Date(selectedItem.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="text-slate-500 hover:text-slate-700"
+                  className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition-all"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 mb-1">Prompt</p>
-                  <div className="bg-sky-50 rounded-lg p-3">
-                    <p className="text-sm text-slate-900 whitespace-pre-wrap break-words">
+                  <p className="text-sm font-medium text-slate-500 mb-1.5">
+                    Prompt
+                  </p>
+                  <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-100/30">
+                    <p className="text-sm text-slate-900 whitespace-pre-wrap break-words leading-relaxed">
                       {selectedItem.prompt}
                     </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-500 mb-1">Response</p>
-                  <div className="bg-slate-100 rounded-lg p-3">
-                    <p className="text-sm text-slate-900 whitespace-pre-wrap break-words">
+                  <p className="text-sm font-medium text-slate-500 mb-1.5">
+                    Response
+                  </p>
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200/50">
+                    <p className="text-sm text-slate-900 whitespace-pre-wrap break-words leading-relaxed">
                       {selectedItem.response}
                     </p>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400">
-                  {new Date(selectedItem.createdAt).toLocaleString()}
-                </p>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-200">
+              <div className="mt-6 pt-4 border-t border-slate-200 flex gap-3">
                 <button
                   onClick={() =>
                     handleCopy(
-                      `Prompt: ${selectedItem.prompt}\n\nResponse: ${selectedItem.response}`
+                      `Prompt: ${selectedItem.prompt}\n\nResponse: ${selectedItem.response}`,
                     )
                   }
-                  className="w-full px-4 py-2 bg-sky-100 hover:bg-sky-200 text-sky-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-50 to-sky-50 hover:from-blue-100 hover:to-sky-100 text-blue-700 rounded-xl font-medium transition-all flex items-center justify-center gap-2 text-sm border border-blue-200/30"
                 >
                   <Copy size={16} />
-                  Copy
+                  Copy All
                 </button>
               </div>
             </motion.div>
@@ -309,7 +499,7 @@ export default function AIHistoryPage() {
         )}
       </AnimatePresence>
 
-      {/* Delete Item Confirmation */}
+      {/* Delete Confirmation */}
       <ConfirmDialog
         open={!!deletingItem}
         onClose={() => setDeletingItem(null)}
@@ -324,10 +514,16 @@ export default function AIHistoryPage() {
               <p className="font-semibold text-slate-900 line-clamp-2">
                 {deletingItem.prompt || 'Request'}
               </p>
-              <p className="text-xs text-slate-500">
-                {(AI_TYPE_COLORS[deletingItem.type] || AI_TYPE_COLORS.chat).label} ·{' '}
-                {new Date(deletingItem.createdAt).toLocaleDateString()}
-              </p>
+              <div className="flex items-center gap-3 text-xs text-slate-500">
+                <span
+                  className={`px-2 py-0.5 rounded-full ${getTypeColors(deletingItem.type).bg} ${getTypeColors(deletingItem.type).text}`}
+                >
+                  {getTypeColors(deletingItem.type).label}
+                </span>
+                <span>
+                  {new Date(deletingItem.createdAt).toLocaleDateString()}
+                </span>
+              </div>
             </div>
           )
         }
@@ -343,8 +539,8 @@ export default function AIHistoryPage() {
         message={
           <>
             This will permanently delete all{' '}
-            <span className="font-semibold text-slate-900">{items.length}</span> AI history
-            items.
+            <span className="font-semibold text-slate-900">{items.length}</span>{' '}
+            AI history items.
           </>
         }
         confirmLabel="Clear All"

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import {
   Backpack,
   MapPin,
@@ -41,7 +41,7 @@ import ErrorState from '@/components/ErrorState';
 import Button from '@/components/Button';
 import Link from 'next/link';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -52,12 +52,12 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const },
   },
 };
 
@@ -388,8 +388,8 @@ function ChartsGrid({ isLoading, error, data }: any) {
                 innerRadius={60}
                 outerRadius={100}
                 paddingAngle={2}
-                label={({ status, percent }) =>
-                  `${status} ${(percent * 100).toFixed(0)}%`
+                label={({ status, percent }: { status?: string; percent?: number }) =>
+                  `${status ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
                 }
                 labelLine={false}
               >

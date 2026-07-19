@@ -10,25 +10,37 @@ import {
   Plus,
   History,
   X,
+  Sparkles,
+  Crown,
+  Bot,
+  User,
+  Clock,
+  Loader2,
 } from 'lucide-react';
-import { useAIChatHistory, useSendChatMessage, useDeleteChatHistory, useClearAllChatHistory } from '@/hooks/useAIChatHistory';
-import { LoadingSpinner } from '@/components/Loading';
+import {
+  useAIChatHistory,
+  useSendChatMessage,
+  useDeleteChatHistory,
+  useClearAllChatHistory,
+} from '@/hooks/useAIChatHistory';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { toast } from 'sonner';
 import { AIHistoryItem } from '@/types';
 
 const SUGGESTED_PROMPTS = [
-  'Plan a 5-day trip to Bali',
-  'Best places for honeymoon',
-  'Budget trip to Thailand',
-  'Family vacation ideas',
+  { icon: '🏝️', label: 'Plan a 5-day trip to Bali' },
+  { icon: '💑', label: 'Best places for honeymoon' },
+  { icon: '💰', label: 'Budget trip to Thailand' },
+  { icon: '👨‍👩‍👧‍👦', label: 'Family vacation ideas' },
+  { icon: '🗺️', label: 'Hidden gems in Europe' },
+  { icon: '🌄', label: 'Adventure travel destinations' },
 ];
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
   },
 };
 
@@ -37,7 +49,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3 },
+    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const },
   },
 };
 
@@ -59,8 +71,10 @@ export default function AIChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [deletingChat, setDeletingChat] = useState<AIHistoryItem | null>(null);
   const [showClearAll, setShowClearAll] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: chatHistories = [], isLoading: historyLoading } = useAIChatHistory();
+  const { data: chatHistories = [], isLoading: historyLoading } =
+    useAIChatHistory();
   const sendMessage = useSendChatMessage();
   const deleteHistory = useDeleteChatHistory();
   const clearHistory = useClearAllChatHistory();
@@ -77,8 +91,14 @@ export default function AIChatPage() {
     scrollToBottom();
   }, [currentMessages]);
 
+  useEffect(() => {
+    if (!isTyping) {
+      inputRef.current?.focus();
+    }
+  }, [isTyping]);
+
   const handleSendMessage = async (text: string = message) => {
-    if (!text.trim()) return;
+    if (!text.trim() || isTyping) return;
 
     const userMessage: LocalMessage = {
       id: Date.now().toString(),
@@ -120,6 +140,7 @@ export default function AIChatPage() {
     setCurrentMessages([]);
     setCurrentHistoryId(null);
     setMessage('');
+    inputRef.current?.focus();
   };
 
   const handleSelectHistory = (history: AIHistoryItem) => {
@@ -176,76 +197,105 @@ export default function AIChatPage() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="h-full flex bg-slate-50"
+      className="h-full flex bg-gradient-to-br from-slate-50 via-white to-slate-50/80"
     >
       {/* Sidebar */}
       <motion.div
         variants={itemVariants}
         className={`${
-          sidebarOpen ? 'w-64' : 'w-0'
-        } transition-all duration-300 bg-white border-r border-slate-200 overflow-hidden flex flex-col`}
+          sidebarOpen ? 'w-72' : 'w-0 md:w-0'
+        } transition-all duration-300 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 overflow-hidden flex flex-col shadow-lg`}
       >
-        <div className="p-4 border-b border-slate-200">
+        {/* Sidebar Header */}
+        <div className="p-4 border-b border-slate-200/60 bg-gradient-to-r from-blue-600/5 to-purple-600/5">
+          <div className="flex items-center gap-2 mb-3">
+            <Bot className="w-5 h-5 text-blue-600" />
+            <span className="font-semibold text-slate-900">Chat History</span>
+            <span className="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+              {chatItems.length}
+            </span>
+          </div>
           <button
             onClick={handleNewChat}
-            className="w-full flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 font-medium text-sm"
           >
             <Plus size={18} />
             New Chat
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        {/* Chat List */}
+        <div className="flex-1 overflow-y-auto p-3">
           {historyLoading ? (
             <div className="flex items-center justify-center h-full">
-              <LoadingSpinner className="h-8" />
+              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
             </div>
           ) : chatItems.length === 0 ? (
-            <div className="p-4 text-center">
-              <History size={32} className="text-slate-300 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No conversations yet</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <History size={28} className="text-slate-300" />
+              </div>
+              <p className="text-sm font-medium text-slate-600">
+                No conversations yet
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                Start a new chat to begin
+              </p>
             </div>
           ) : (
-            <div className="p-2">
+            <div className="space-y-1.5">
               {chatItems.map((history) => (
                 <motion.div
                   key={history._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={`p-3 rounded-lg mb-2 cursor-pointer transition-colors group ${
+                  whileHover={{ scale: 1.02 }}
+                  className={`p-3 rounded-xl cursor-pointer transition-all duration-200 group ${
                     currentHistoryId === history._id
-                      ? 'bg-sky-100 text-sky-700'
-                      : 'hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/50 shadow-sm'
+                      : 'hover:bg-slate-50/80'
                   }`}
                   onClick={() => handleSelectHistory(history)}
                 >
-                  <p className="text-sm font-medium truncate">
-                    {history.prompt || 'Conversation'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {new Date(history.createdAt).toLocaleDateString()}
-                  </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeletingChat(history);
-                    }}
-                    className="hidden group-hover:block mt-2 p-1 hover:bg-red-100 rounded transition-colors"
-                  >
-                    <Trash2 size={14} className="text-red-600" />
-                  </button>
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                      <MessageCircle size={14} className="text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-900 truncate">
+                        {history.prompt || 'Conversation'}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Clock size={12} className="text-slate-400" />
+                        <p className="text-xs text-slate-400">
+                          {new Date(history.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingChat(history);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-50 rounded-lg transition-all"
+                    >
+                      <Trash2 size={14} className="text-red-500" />
+                    </button>
+                  </div>
                 </motion.div>
               ))}
             </div>
           )}
         </div>
 
+        {/* Sidebar Footer */}
         {chatItems.length > 0 && (
-          <div className="p-2 border-t border-slate-200">
+          <div className="p-3 border-t border-slate-200/60">
             <button
               onClick={() => setShowClearAll(true)}
-              className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="w-full text-left px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 flex items-center gap-2"
             >
+              <Trash2 size={16} />
               Clear All History
             </button>
           </div>
@@ -255,30 +305,50 @@ export default function AIChatPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <motion.div variants={itemVariants} className="bg-white border-b border-slate-200 p-4">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 p-4 shadow-sm"
+        >
+          <div className="flex items-center justify-between max-w-5xl mx-auto">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 hover:bg-slate-100 rounded-lg"
+                className="md:hidden p-2 hover:bg-slate-100 rounded-xl transition-all"
               >
                 {sidebarOpen ? <X size={20} /> : <MessageCircle size={20} />}
               </button>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <MessageCircle className="text-purple-600" size={20} />
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-xl blur-lg opacity-30" />
+                  <div className="relative w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-slate-900">AI Travel Assistant</h1>
-                  <p className="text-xs text-slate-500">Chat for travel advice</p>
+                  <h1 className="text-lg font-bold text-slate-900">
+                    AI Travel Assistant
+                  </h1>
+                  <p className="text-xs text-slate-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                    Online • Ready to help
+                  </p>
                 </div>
               </div>
+            </div>
+            <div className="flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-orange-400/20 px-3 py-1.5 rounded-full border border-amber-200/30">
+              <Crown className="w-3.5 h-3.5 text-amber-500" />
+              <span className="text-[10px] font-medium text-amber-700">
+                Premium AI
+              </span>
             </div>
           </div>
         </motion.div>
 
         {/* Messages Area */}
-        <motion.div variants={itemVariants} className="flex-1 overflow-y-auto p-4 md:p-6">
+        <motion.div
+          variants={itemVariants}
+          className="flex-1 overflow-y-auto p-4 md:p-6"
+        >
           <div className="max-w-4xl mx-auto">
             {currentMessages.length === 0 && !isTyping ? (
               <EmptyState onSelectPrompt={handleSendMessage} />
@@ -302,36 +372,56 @@ export default function AIChatPage() {
         </motion.div>
 
         {/* Input Area */}
-        <motion.div variants={itemVariants} className="bg-white border-t border-slate-200 p-4 md:p-6">
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 backdrop-blur-xl border-t border-slate-200/60 p-4 md:p-6 shadow-lg"
+        >
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-3">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Ask me anything about travel..."
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                disabled={isTyping}
-              />
-              <button
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Ask me anything about travel..."
+                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-slate-900 placeholder:text-slate-400"
+                  disabled={isTyping}
+                />
+                {message.length > 0 && (
+                  <button
+                    onClick={() => setMessage('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 rounded-lg transition-all"
+                  >
+                    <X size={16} className="text-slate-400" />
+                  </button>
+                )}
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => handleSendMessage()}
                 disabled={isTyping || !message.trim()}
-                className="px-4 py-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl hover:shadow-lg hover:shadow-blue-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2 font-medium"
               >
+                <span className="hidden sm:inline">Send</span>
                 <Send size={18} />
-              </button>
+              </motion.button>
             </div>
+            <p className="text-xs text-slate-400 text-center mt-2">
+              Press Enter to send • AI may make mistakes
+            </p>
           </div>
         </motion.div>
       </div>
 
-      {/* Delete Conversation Confirmation */}
+      {/* Confirm Dialogs */}
       <ConfirmDialog
         open={!!deletingChat}
         onClose={() => setDeletingChat(null)}
@@ -354,7 +444,6 @@ export default function AIChatPage() {
         }
       />
 
-      {/* Clear All Confirmation */}
       <ConfirmDialog
         open={showClearAll}
         onClose={() => setShowClearAll(false)}
@@ -364,7 +453,9 @@ export default function AIChatPage() {
         message={
           <>
             This will permanently delete all{' '}
-            <span className="font-semibold text-slate-900">{chatItems.length}</span>{' '}
+            <span className="font-semibold text-slate-900">
+              {chatItems.length}
+            </span>{' '}
             conversations.
           </>
         }
@@ -384,45 +475,56 @@ function ChatMessageBubble({ message, onCopy }: ChatMessageBubbleProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
       className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
     >
       {!isUser && (
-        <div className="w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <MessageCircle size={16} className="text-sky-600" />
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+          <Bot className="w-4 h-4 text-white" />
         </div>
       )}
 
       <div
-        className={`max-w-lg rounded-lg p-4 ${
+        className={`max-w-[80%] rounded-2xl p-4 ${
           isUser
-            ? 'bg-sky-600 text-white'
-            : 'bg-slate-100 text-slate-900 group relative'
+            ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-600/20'
+            : 'bg-white border border-slate-200/60 text-slate-900 group relative shadow-sm'
         }`}
       >
-        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+          {message.content}
+        </p>
 
         {!isUser && (
           <motion.button
             initial={{ opacity: 0 }}
             whileHover={{ opacity: 1 }}
             onClick={() => onCopy(message.content)}
-            className="absolute top-2 right-2 p-1 hover:bg-slate-200 rounded transition-colors"
+            className="absolute top-2 right-2 p-1.5 hover:bg-slate-100 rounded-lg transition-all opacity-0 group-hover:opacity-100"
             title="Copy message"
           >
-            <Copy size={14} className="text-slate-600" />
+            <Copy size={14} className="text-slate-400 hover:text-slate-600" />
           </motion.button>
         )}
 
-        <p className="text-xs mt-2 opacity-70">
+        <p
+          className={`text-[10px] mt-2 ${isUser ? 'text-white/60' : 'text-slate-400'}`}
+        >
           {message.timestamp.toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
           })}
         </p>
       </div>
+
+      {isUser && (
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center flex-shrink-0">
+          <User className="w-4 h-4 text-slate-600" />
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -434,17 +536,17 @@ function TypingIndicator() {
       animate={{ opacity: 1, y: 0 }}
       className="flex gap-3"
     >
-      <div className="w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0">
-        <MessageCircle size={16} className="text-sky-600" />
+      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+        <Bot className="w-4 h-4 text-white" />
       </div>
 
-      <div className="bg-slate-100 rounded-lg p-4 flex gap-1">
+      <div className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm flex gap-1.5">
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            className="w-2 h-2 bg-slate-400 rounded-full"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 0.6, delay: i * 0.1, repeat: Infinity }}
+            className="w-2.5 h-2.5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 0.6, delay: i * 0.15, repeat: Infinity }}
           />
         ))}
       </div>
@@ -461,38 +563,41 @@ function EmptyState({ onSelectPrompt }: EmptyStateProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="text-center py-12"
+      className="text-center py-16"
     >
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ delay: 0.2 }}
-        className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
+        className="relative w-20 h-20 mx-auto mb-6"
       >
-        <MessageCircle className="text-purple-600" size={32} />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-500/20 rounded-full blur-2xl" />
+        <div className="relative w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/20">
+          <Sparkles className="w-10 h-10 text-white" />
+        </div>
       </motion.div>
 
       <h2 className="text-2xl font-bold text-slate-900 mb-2">
         Start a Conversation
       </h2>
-      <p className="text-slate-600 mb-8">
+      <p className="text-slate-500 mb-8 max-w-sm mx-auto">
         Ask me anything about travel planning and I'll help you out!
       </p>
 
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-slate-600 mb-4">
-          Try these suggestions:
-        </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
         {SUGGESTED_PROMPTS.map((prompt, idx) => (
           <motion.button
-            key={prompt}
+            key={prompt.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + idx * 0.1 }}
-            onClick={() => onSelectPrompt(prompt)}
-            className="block w-full px-4 py-3 text-sm text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 transition-colors"
+            transition={{ delay: 0.3 + idx * 0.08 }}
+            onClick={() => onSelectPrompt(prompt.label)}
+            className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 rounded-xl border border-slate-200/60 transition-all duration-300 group"
           >
-            {prompt}
+            <span className="text-xl">{prompt.icon}</span>
+            <span className="group-hover:text-blue-600 transition-colors">
+              {prompt.label}
+            </span>
           </motion.button>
         ))}
       </div>

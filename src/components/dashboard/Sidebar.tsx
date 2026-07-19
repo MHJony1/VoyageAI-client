@@ -17,7 +17,7 @@ import {
   Crown,
   LogOut,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useAuth } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 
@@ -59,7 +59,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     onClose();
   };
 
-  const sidebarVariants = {
+  const sidebarVariants: Variants = {
     open: {
       x: 0,
       opacity: 1,
